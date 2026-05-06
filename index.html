@@ -396,7 +396,7 @@ async function initAuth(){
   });
 }
 async function googleLogin(){
-  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+window.location.pathname}});
+  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://rrx58.github.io'}});
 }
 async function signOut(){await sb.auth.signOut();}
 async function onLogin(user){
