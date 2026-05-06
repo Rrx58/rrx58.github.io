@@ -6,6 +6,7 @@
 <title>RON RX · 个人空间</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=DM+Mono:wght@300;400&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#f4f1ed;--sf:#fff;--s2:#f0ece5;--bd:#e2dbd0;--tx:#1a1714;--t2:#6b6460;--t3:#a09890;--ac:#2d5a3d;--a2:#c4713a;--a3:#4a7fa5;--red:#b03a2e;--grn:#1e8449;--sb:#1c1917;}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -114,6 +115,20 @@ textarea{resize:vertical;min-height:72px}
 </style>
 </head>
 <body>
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:flex;position:fixed;inset:0;background:var(--bg);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:24px">
+  <div style="text-align:center">
+    <div style="font-family:'Fraunces',serif;font-size:36px;color:var(--tx);margin-bottom:8px">RON RX</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);letter-spacing:.12em">PERSONAL SPACE</div>
+  </div>
+  <button onclick="googleLogin()" style="display:flex;align-items:center;gap:12px;padding:14px 28px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-family:'Noto Serif SC',serif;font-size:14px;color:var(--tx);transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+    使用 Google 账号登录
+  </button>
+  <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3)">登录后数据安全存储在云端</div>
+</div>
+
+<div id="app-wrap" style="display:none;min-height:100vh;width:100%">
 <div class="app">
 <nav class="sidebar">
   <div class="logo"><div class="logo-name">RON RX</div><div class="logo-sub">PERSONAL SPACE</div></div>
@@ -123,49 +138,88 @@ textarea{resize:vertical;min-height:72px}
   <div class="nav-sec">生活</div>
   <div class="nav-item" onclick="showPage('travel',this)">✈️ 旅行</div>
   <div class="nav-item" onclick="showPage('reading',this)">📚 阅读</div>
-  <div class="sb-foot"><div class="sb-date" id="sd"></div></div>
+  <div class="sb-foot">
+  <div class="sb-date" id="sd"></div>
+  <div style="margin-top:10px;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="user-email"></div>
+  <button onclick="signOut()" style="margin-top:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:11px;padding:5px 10px;border-radius:4px;cursor:pointer;width:100%">退出登录</button>
+</div>
 </nav>
 <main class="main">
 
 <div id="page-portfolio" class="page active">
-  <div class="ph"><h1 class="pt">投资组合</h1><span class="ps" id="port-sub">0 笔持仓</span><div class="ha"><button class="btn bg bs" onclick="tfp('trade-form')">＋ 录入交易</button></div></div>
+  <div class="ph">
+    <h1 class="pt">投资组合</h1>
+    <span class="ps" id="port-sub">0 笔持仓</span>
+    <div class="ha">
+      <button class="btn bg bs" onclick="openPortfolioModal()">＋ 新建组合</button>
+      <button class="btn bg bs" onclick="tfp('trade-form')">＋ 录入交易</button>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO SELECTOR BAR -->
+  <div id="portfolio-bar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center">
+    <button class="fb active" onclick="selectPortfolio(null,this)" style="font-size:12px">全部</button>
+  </div>
+
   <div class="sg">
     <div class="sc"><div class="sl">总成本</div><div class="sv" id="s-cost">—</div></div>
     <div class="sc"><div class="sl">持仓标的</div><div class="sv" id="s-count">0</div></div>
     <div class="sc"><div class="sl">交易笔数</div><div class="sv" id="s-trades">0</div></div>
     <div class="sc"><div class="sl">最近交易</div><div class="sv" id="s-last" style="font-size:13px">—</div></div>
   </div>
+
   <div class="fp" id="trade-form">
     <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em;margin-bottom:14px">录入交易</div>
+    <div style="margin-bottom:18px">
+      <label style="display:flex;align-items:center;justify-content:center;gap:10px;border:2px dashed var(--border);border-radius:8px;padding:14px;cursor:pointer;background:var(--s2)">
+        <span style="font-size:20px">📋</span>
+        <div>
+          <div style="font-size:13px;color:var(--t2)">上传交易截图，AI 自动读取</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">支持券商 App / 网页截图，自动填写交易信息</div>
+        </div>
+        <input type="file" id="trade-img-input" accept="image/*" style="display:none" onchange="scanTradeImg(this)">
+      </label>
+      <div id="trade-scan-row" style="display:none;margin-top:8px;align-items:center;gap:10px">
+        <img id="trade-scan-thumb" style="width:60px;height:40px;object-fit:cover;border-radius:4px;border:1px solid var(--border)">
+        <span id="trade-scan-msg" style="font-family:'DM Mono',monospace;font-size:11px"></span>
+      </div>
+    </div>
     <div class="fr c4">
+      <div class="fg"><label>归属组合</label><select id="t-pid"><option value="">— 未分配 —</option></select></div>
       <div class="fg"><label>方向</label><select id="td"><option value="buy">买入</option><option value="sell">卖出</option></select></div>
       <div class="fg"><label>代码</label><input id="tc" placeholder="AAPL / HKG:0700"/></div>
       <div class="fg"><label>名称</label><input id="tn" placeholder="公司名称"/></div>
-      <div class="fg"><label>市场</label><select id="tm"><option>美股</option><option>港股</option><option>ETF</option></select></div>
     </div>
     <div class="fr c4">
+      <div class="fg"><label>市场</label><select id="tm"><option>美股</option><option>港股</option><option>ETF</option></select></div>
       <div class="fg"><label>数量</label><input id="tq" type="number" placeholder="100"/></div>
       <div class="fg"><label>价格</label><input id="tp" type="number" step="0.01" placeholder="0.00"/></div>
       <div class="fg"><label>货币</label><select id="tcu"><option value="USD">USD</option><option value="HKD">HKD</option></select></div>
+    </div>
+    <div class="fr c3">
       <div class="fg"><label>日期</label><input id="tdt" type="date"/></div>
-    </div>
-    <div class="fr c2">
       <div class="fg"><label>行业</label><select id="tind"><option>科技</option><option>金融</option><option>消费</option><option>医疗</option><option>能源</option><option>工业</option><option>ETF/指数</option><option>其他</option></select></div>
-      <div class="fg"><label>备注（选填）</label><input id="tnote"/></div>
+      <div class="fg"><label>备注</label><input id="tnote"/></div>
     </div>
-    <div class="fa"><button class="btn bp" onclick="saveTrade()">保存</button><button class="btn bg" onclick="tfp('trade-form')">取消</button></div>
+    <div class="fa">
+      <button class="btn bp" onclick="saveTrade()">保存</button>
+      <button class="btn bg" onclick="tfp('trade-form')">取消</button>
+    </div>
   </div>
+
   <div class="tabs">
-    <button class="tab active" onclick="ptab('holdings',this)">持仓明细</button>
-    <button class="tab" onclick="ptab('analysis',this)">组合分析</button>
-    <button class="tab" onclick="ptab('history',this)">交易记录</button>
+    <button class="tab active" onclick="ptab('h',this)">持仓明细</button>
+    <button class="tab" onclick="ptab('a',this)">组合分析</button>
+    <button class="tab" onclick="ptab('r',this)">交易记录</button>
   </div>
+
   <div id="pt-h">
     <div class="c0"><table class="tbl">
-      <thead><tr><th>代码 / 名称</th><th>市场</th><th>行业</th><th class="tr">持仓数量</th><th class="tr">均摊成本</th><th class="tr">总成本</th><th class="tr">仓位占比</th><th></th></tr></thead>
+      <thead><tr><th>代码 / 名称</th><th>市场</th><th>行业</th><th>归属组合</th><th class="tr">持仓数量</th><th class="tr">均摊成本</th><th class="tr">总成本</th><th class="tr">仓位占比</th><th></th></tr></thead>
       <tbody id="hbody"></tbody>
     </table></div>
   </div>
+
   <div id="pt-a" style="display:none">
     <div class="fbar">
       <button class="fb active" onclick="setPd('all',this)">全部</button>
@@ -182,9 +236,10 @@ textarea{resize:vertical;min-height:72px}
     <div class="cw"><div class="ct">月度交易金额（买入 vs 卖出）</div><canvas id="mon-c" height="150"></canvas></div>
     <div class="cw"><div class="ct">累计投入走势（按日）</div><canvas id="day-c" height="150"></canvas></div>
   </div>
+
   <div id="pt-r" style="display:none">
     <div class="c0"><table class="tbl">
-      <thead><tr><th>日期</th><th>方向</th><th>代码 / 名称</th><th>市场</th><th>行业</th><th class="tr">数量</th><th class="tr">价格</th><th class="tr">金额</th><th>货币</th><th>备注</th><th></th></tr></thead>
+      <thead><tr><th>日期</th><th>方向</th><th>代码 / 名称</th><th>市场</th><th>行业</th><th>归属组合</th><th class="tr">数量</th><th class="tr">价格</th><th class="tr">金额</th><th>货币</th><th>备注</th><th></th></tr></thead>
       <tbody id="tbody"></tbody>
     </table></div>
   </div>
@@ -220,6 +275,33 @@ textarea{resize:vertical;min-height:72px}
 </div>
 
 </main></div>
+
+<!-- PORTFOLIO MODAL -->
+<div class="overlay" id="pm">
+  <div class="modal">
+    <button class="mc" onclick="cm('pm')">✕</button>
+    <div class="mt2" id="pmt">新建组合</div>
+    <div class="fr c2">
+      <div class="fg"><label>组合名称</label><input id="p-name" placeholder="如：核心持仓 / 成长组合"/></div>
+      <div class="fg"><label>标签颜色</label>
+        <select id="p-color">
+          <option value="#2d5a3d">深绿</option>
+          <option value="#4a7fa5">蓝色</option>
+          <option value="#c4713a">橙色</option>
+          <option value="#6b5c8a">紫色</option>
+          <option value="#b03a2e">红色</option>
+          <option value="#d4ac0d">金色</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:16px"><label>描述（选填）</label><input id="p-desc" placeholder="这个组合的投资策略或目标"/></div>
+    <input type="hidden" id="p-eid"/>
+    <div class="fa">
+      <button class="btn bp" onclick="savePortfolio()">保存</button>
+      <button class="btn bg" onclick="cm('pm')">取消</button>
+    </div>
+  </div>
+</div>
 
 <!-- IDEA MODAL -->
 <div class="overlay" id="im">
@@ -258,8 +340,27 @@ textarea{resize:vertical;min-height:72px}
 <div class="overlay" id="bm">
   <div class="modal">
     <button class="mc" onclick="cm('bm')">✕</button>
-    <div class="mt2">新增书目</div>
+    <div class="mt2" id="bmt">新增书目</div>
+
+    <!-- AI SCAN ZONE -->
+    <div id="ai-scan-zone" style="margin-bottom:20px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.06em;margin-bottom:8px">📷 上传书封，AI 自动识别</div>
+      <label id="upload-label" style="display:flex;align-items:center;justify-content:center;gap:10px;border:2px dashed var(--border);border-radius:8px;padding:18px;cursor:pointer;transition:all .2s;background:var(--s2)">
+        <span style="font-size:24px">📚</span>
+        <div>
+          <div style="font-size:13px;color:var(--t2)">点击上传书封图片</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">支持 JPG / PNG，AI 自动填写书名、作者等信息</div>
+        </div>
+        <input type="file" id="book-img-input" accept="image/*" style="display:none" onchange="scanBookImage(this)">
+      </label>
+      <div id="scan-preview" style="display:none;margin-top:10px;display:none">
+        <img id="scan-img" style="width:80px;height:110px;object-fit:cover;border-radius:4px;border:1px solid var(--border)">
+        <span id="scan-status" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-left:12px;vertical-align:middle"></span>
+      </div>
+    </div>
+
     <div class="fr c2"><div class="fg"><label>书名</label><input id="b-title" placeholder="书名"/></div><div class="fg"><label>作者</label><input id="b-auth" placeholder="作者"/></div></div>
+    <div class="fr c2"><div class="fg"><label>出版社</label><input id="b-pub" placeholder="出版社"/></div><div class="fg"><label>出版年份</label><input id="b-year" placeholder="2024"/></div></div>
     <div class="fr c3">
       <div class="fg"><label>分类</label><select id="b-cat"><option>投资 / 金融</option><option>商业 / 管理</option><option>历史 / 传记</option><option>科学 / 技术</option><option>文学 / 小说</option><option>哲学 / 思想</option><option>其他</option></select></div>
       <div class="fg"><label>状态</label><select id="b-stat"><option>想读</option><option>在读</option><option>已读</option></select></div>
@@ -273,13 +374,62 @@ textarea{resize:vertical;min-height:72px}
 </div>
 
 <script>
-var S={trades:[],ideas:[],travel:[],books:[]};
+// ── SUPABASE ──
+const SUPABASE_URL='https://qcuwyzkdjyqghwdhplvz.supabase.co';
+const SUPABASE_KEY='sb_publishable_4Mhnq7iaWoIaZMt-tkZbuw_DWbq-PX6';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var currentUser=null;
+
+var S={portfolios:[],trades:[],ideas:[],travel:[],books:[]};var activePortfolioId=null;
 var CHS={};
 var period='all',iF='all',bF='all';
 var COLORS=['#2d5a3d','#4a7fa5','#c4713a','#d4ac0d','#6b5c8a','#3a7a7a','#a05c3a','#7a3a5c','#5c7a3a','#3a5c7a'];
 
-function load(){try{var d=localStorage.getItem('ronrx3');if(d)S=JSON.parse(d);}catch(e){}document.getElementById('tdt').value=td();}
-function save(){localStorage.setItem('ronrx3',JSON.stringify(S));}
+// ── AUTH ──
+async function initAuth(){
+  var r=await sb.auth.getSession();
+  if(r.data&&r.data.session){await onLogin(r.data.session.user);}
+  else{showLogin();}
+  sb.auth.onAuthStateChange(async function(ev,sess){
+    if(ev==='SIGNED_IN'&&sess){await onLogin(sess.user);}
+    else if(ev==='SIGNED_OUT'){currentUser=null;showLogin();}
+  });
+}
+async function googleLogin(){
+  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+window.location.pathname}});
+}
+async function signOut(){await sb.auth.signOut();}
+async function onLogin(user){
+  currentUser=user;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-wrap').style.display='flex';
+  document.getElementById('user-email').textContent=user.email;
+  await loadAll();
+  document.getElementById('tdt').value=td();
+  renderAll();
+}
+function showLogin(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app-wrap').style.display='none';
+}
+async function loadAll(){
+  if(!currentUser)return;
+  var uid=currentUser.id;
+  var results=await Promise.all([
+    sb.from('portfolios').select('*').eq('user_id',uid).order('created_at'),
+    sb.from('trades').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('ideas').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('travel').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('books').select('*').eq('user_id',uid).order('created_at',{ascending:false})
+  ]);
+  S.portfolios=(results[0].data||[]).map(function(x){return{id:x.id,name:x.name,desc:x.description,color:x.color};});
+  S.trades=(results[1].data||[]).map(function(x){return{id:x.id,portfolioId:x.portfolio_id,direction:x.direction,code:x.code,name:x.name,market:x.market,qty:Number(x.qty),price:Number(x.price),currency:x.currency,date:x.trade_date,industry:x.industry,note:x.note||''};});
+  S.ideas=(results[2].data||[]).map(function(x){return{id:x.id,name:x.name,code:x.code||'',industry:x.industry,market:x.market,rating:x.rating,status:x.status,target:x.target,currency:x.currency,note:x.note||'',date:x.idea_date};});
+  S.travel=(results[3].data||[]).map(function(x){return{id:x.id,dest:x.dest,country:x.country||'',start:x.start_date||'',end:x.end_date||'',companions:x.companions||'',emoji:x.emoji||'🌍',tag:x.tag||'',note:x.note||''};});
+  S.books=(results[4].data||[]).map(function(x){return{id:x.id,title:x.title,author:x.author||'',publisher:x.publisher||'',year:x.year||'',category:x.category,status:x.status,rating:x.rating||'',date:x.finish_date||'',lang:x.language||'中文',note:x.note||''};});
+}
+function load(){document.getElementById('tdt').value=td();}
+function save(){}
 function td(){return new Date().toISOString().split('T')[0];}
 function fmt(n){if(n===null||n===undefined||isNaN(n))return'—';var a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(2)+'M';if(a>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(2);}
 
@@ -300,15 +450,72 @@ function ptab(t,btn){
   if(t==='analysis')renderAnalysis();
 }
 
-function tfp(id){document.getElementById(id).classList.toggle('open');}
+function tfp(id){
+  document.getElementById(id).classList.toggle('open');
+  if(id==='trade-form'){
+    var row=document.getElementById('trade-scan-row');
+    if(row)row.style.display='none';
+    var inp=document.getElementById('trade-img-input');
+    if(inp)inp.value='';
+  }
+}
+
+async function scanTradeImg(input){
+  var file=input.files[0]; if(!file)return;
+  var row=document.getElementById('trade-scan-row');
+  var thumb=document.getElementById('trade-scan-thumb');
+  var msg=document.getElementById('trade-scan-msg');
+  row.style.display='flex';
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    thumb.src=e.target.result;
+    msg.textContent='⏳ AI 识别中...'; msg.style.color='var(--a2)';
+    try{
+      var resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',max_tokens:600,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:e.target.result.split(',')[1]}},
+            {type:'text',text:'这是一张股票交易截图，请识别交易信息。只返回JSON，不要其他文字。direction只能是buy或sell，market只能是美股/港股/ETF，currency只能是USD或HKD，industry从科技/金融/消费/医疗/能源/工业/ETF指数/其他中选一个，date格式YYYY-MM-DD。格式：{"direction":"buy","code":"","name":"","market":"","qty":"","price":"","currency":"","date":"","industry":"","note":""}'}
+          ]}]
+        })
+      });
+      var data=await resp.json();
+      var txt=data.content&&data.content[0]?data.content[0].text:'';
+      var info=JSON.parse(txt.replace(/```json|```/g,'').trim());
+      var setSelect=function(id,val){var s=document.getElementById(id);for(var i=0;i<s.options.length;i++){if(s.options[i].value===val){s.selectedIndex=i;break;}}};
+      if(info.direction)setSelect('td',info.direction);
+      if(info.code)document.getElementById('tc').value=info.code;
+      if(info.name)document.getElementById('tn').value=info.name;
+      if(info.market)setSelect('tm',info.market);
+      if(info.qty)document.getElementById('tq').value=info.qty;
+      if(info.price)document.getElementById('tp').value=info.price;
+      if(info.currency)setSelect('tcu',info.currency);
+      if(info.date)document.getElementById('tdt').value=info.date;
+      if(info.industry)setSelect('tind',info.industry);
+      if(info.note)document.getElementById('tnote').value=info.note;
+      msg.textContent='✅ 识别完成，请核对后保存'; msg.style.color='var(--grn)';
+    }catch(err){
+      msg.textContent='❌ 识别失败，请手动填写'; msg.style.color='var(--red)';
+    }
+  };
+  reader.readAsDataURL(file);
+}
 
 function saveTrade(){
-  var t={id:Date.now(),direction:document.getElementById('td').value,code:document.getElementById('tc').value.trim(),name:document.getElementById('tn').value.trim(),market:document.getElementById('tm').value,qty:parseFloat(document.getElementById('tq').value)||0,price:parseFloat(document.getElementById('tp').value)||0,currency:document.getElementById('tcu').value,date:document.getElementById('tdt').value,industry:document.getElementById('tind').value,note:document.getElementById('tnote').value.trim()};
+  var t={id:Date.now(),portfolioId:document.getElementById('t-pid').value||null,direction:document.getElementById('td').value,code:document.getElementById('tc').value.trim(),name:document.getElementById('tn').value.trim(),market:document.getElementById('tm').value,qty:parseFloat(document.getElementById('tq').value)||0,price:parseFloat(document.getElementById('tp').value)||0,currency:document.getElementById('tcu').value,date:document.getElementById('tdt').value,industry:document.getElementById('tind').value,note:document.getElementById('tnote').value.trim()};
   if(!t.code||!t.name||!t.qty||!t.price){alert('请填写代码、名称、数量和价格');return;}
-  S.trades.unshift(t);save();renderPortfolio();
-  ['tc','tn','tq','tp','tnote'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('tdt').value=td();
-  tfp('trade-form');
+  var row={user_id:currentUser.id,portfolio_id:t.portfolioId||null,direction:t.direction,code:t.code,name:t.name,market:t.market,qty:t.qty,price:t.price,currency:t.currency,trade_date:t.date,industry:t.industry,note:t.note};
+  sb.from('trades').insert(row).select().then(function(r){
+    if(r.error){alert('保存失败：'+r.error.message);return;}
+    t.id=r.data[0].id;
+    S.trades.unshift(t);renderPortfolio();
+    ['tc','tn','tq','tp','tnote'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('tdt').value=td();
+    tfp('trade-form');
+  });
 }
 
 function delTrade(id){if(!confirm('确认删除？'))return;S.trades=S.trades.filter(function(t){return t.id!==id;});save();renderPortfolio();}
@@ -324,14 +531,30 @@ function compHoldings(trades){
   return Object.values(h).filter(function(hh){return hh.qty>0.0001;});
 }
 
+function getFilteredTrades(){
+  if(activePortfolioId===null)return S.trades;
+  return S.trades.filter(function(t){return String(t.portfolioId)===String(activePortfolioId);});
+}
+function getPortfolioName(id){
+  if(!id)return '未分配';
+  var p=S.portfolios.find(function(x){return String(x.id)===String(id);});
+  return p?p.name:'未分配';
+}
+function getPortfolioColor(id){
+  if(!id)return 'var(--t3)';
+  var p=S.portfolios.find(function(x){return String(x.id)===String(id);});
+  return p?p.color:'var(--t3)';
+}
 function renderPortfolio(){
-  var holdings=compHoldings(S.trades);
+  var ft=getFilteredTrades();
+  var holdings=compHoldings(ft);
   var tc=holdings.reduce(function(s,h){return s+h.totalCost;},0);
   document.getElementById('s-cost').textContent=fmt(tc);
   document.getElementById('s-count').textContent=holdings.length;
-  document.getElementById('s-trades').textContent=S.trades.length;
-  document.getElementById('port-sub').textContent=holdings.length+' 笔持仓';
-  var last=S.trades[0];
+  document.getElementById('s-trades').textContent=ft.length;
+  var pname=activePortfolioId?getPortfolioName(activePortfolioId)+' · ':'';
+  document.getElementById('port-sub').textContent=pname+holdings.length+' 笔持仓';
+  var last=ft[0];
   document.getElementById('s-last').textContent=last?last.date+' '+last.name:'—';
   var hb=document.getElementById('hbody');
   if(!holdings.length){hb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📊</div><div class="et">暂无持仓，点击「录入交易」开始</div></div></td></tr>';}
@@ -340,7 +563,7 @@ function renderPortfolio(){
     return '<tr><td><div style="font-weight:600">'+h.name+'</div><div class="mono" style="font-size:10px;color:var(--t3)">'+h.code+'</div></td><td><span class="tag">'+h.market+'</span></td><td><span class="tag">'+h.industry+'</span></td><td class="tr mono">'+h.qty.toLocaleString()+'</td><td class="tr mono">'+avg.toFixed(2)+' <span style="font-size:9px;color:var(--t3)">'+h.currency+'</span></td><td class="tr mono">'+fmt(h.totalCost)+' <span style="font-size:9px;color:var(--t3)">'+h.currency+'</span></td><td style="min-width:90px"><div style="font-size:11px;color:var(--t2)">'+pct.toFixed(1)+'%</div><div class="pb"><div class="pbf" style="width:'+pct+'%"></div></div></td><td></td></tr>';
   }).join('');
   var tb=document.getElementById('tbody');
-  if(!S.trades.length){tb.innerHTML='<tr><td colspan="11"><div class="empty" style="padding:28px"><div class="et">暂无交易记录</div></div></td></tr>';}
+  if(!ft.length){tb.innerHTML='<tr><td colspan="11"><div class="empty" style="padding:28px"><div class="et">暂无交易记录</div></div></td></tr>';}
   else tb.innerHTML=S.trades.map(function(t){
     return '<tr><td class="mono" style="font-size:11px">'+t.date+'</td><td><span class="tag '+(t.direction==='buy'?'tg':'trt')+'">'+(t.direction==='buy'?'买入':'卖出')+'</span></td><td><div style="font-weight:600">'+t.name+'</div><div class="mono" style="font-size:10px;color:var(--t3)">'+t.code+'</div></td><td><span class="tag">'+t.market+'</span></td><td><span class="tag">'+(t.industry||'—')+'</span></td><td class="tr mono">'+t.qty.toLocaleString()+'</td><td class="tr mono">'+t.price.toFixed(2)+'</td><td class="tr mono">'+fmt(t.qty*t.price)+'</td><td class="mono" style="font-size:10px">'+t.currency+'</td><td style="color:var(--t3);font-size:11px">'+(t.note||'—')+'</td><td><button class="btn bd2 bs" onclick="delTrade('+t.id+')">删</button></td></tr>';
   }).join('');
@@ -361,7 +584,7 @@ function filtPd(trades){
 function dChart(id){if(CHS[id]){CHS[id].destroy();delete CHS[id];}}
 
 function renderAnalysis(){
-  var trades=filtPd(S.trades);
+  var trades=filtPd(getFilteredTrades());
   var holdings=compHoldings(trades);
   var tc=holdings.reduce(function(s,h){return s+h.totalCost;},0);
   dChart('mkt');
@@ -395,8 +618,17 @@ function saveIdea(){
   var eid=document.getElementById('i-eid').value;
   var idea={id:eid?parseInt(eid):Date.now(),name:document.getElementById('i-name').value.trim(),code:document.getElementById('i-code').value.trim(),industry:document.getElementById('i-ind').value,market:document.getElementById('i-mkt').value,rating:document.getElementById('i-rate').value,status:document.getElementById('i-stat').value,target:document.getElementById('i-tgt').value,currency:document.getElementById('i-cu').value,note:document.getElementById('i-note').value.trim(),date:td()};
   if(!idea.name){alert('请填写公司名称');return;}
-  if(eid){var idx=S.ideas.findIndex(function(i){return i.id===parseInt(eid);});if(idx>-1)S.ideas[idx]=idea;}else S.ideas.unshift(idea);
-  save();renderIdeas();cm('im');
+  var row={user_id:currentUser.id,name:idea.name,code:idea.code,industry:idea.industry,market:idea.market,rating:idea.rating,status:idea.status,target:idea.target||null,currency:idea.currency,note:idea.note,idea_date:idea.date};
+  if(eid){
+    sb.from('ideas').update(row).eq('id',parseInt(eid)).then(function(){
+      var idx=S.ideas.findIndex(function(i){return i.id===parseInt(eid);});if(idx>-1)S.ideas[idx]=idea;renderIdeas();cm('im');
+    });
+  }else{
+    sb.from('ideas').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      idea.id=r.data[0].id;S.ideas.unshift(idea);renderIdeas();cm('im');
+    });
+  }
 }
 
 function editIdea(id){
@@ -406,7 +638,7 @@ function editIdea(id){
   om('im');
 }
 
-function delIdea(id){if(!confirm('确认删除？'))return;S.ideas=S.ideas.filter(function(i){return i.id!==id;});save();renderIdeas();}
+function delIdea(id){if(!confirm('确认删除？'))return;sb.from('ideas').delete().eq('id',id).then(function(){S.ideas=S.ideas.filter(function(i){return i.id!==id;});renderIdeas();});}
 function fIdea(f,btn){iF=f;document.querySelectorAll('#page-ideas .fb').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderIdeas();}
 
 function renderIdeas(){
@@ -421,8 +653,17 @@ function saveTravel(){
   var eid=document.getElementById('v-eid').value;
   var v={id:eid?parseInt(eid):Date.now(),dest:document.getElementById('v-dest').value.trim(),country:document.getElementById('v-country').value.trim(),start:document.getElementById('v-s').value,end:document.getElementById('v-e').value,companions:document.getElementById('v-co').value.trim(),emoji:document.getElementById('v-em').value.trim()||'🌍',tag:document.getElementById('v-tg').value.trim(),note:document.getElementById('v-note').value.trim()};
   if(!v.dest){alert('请填写目的地');return;}
-  if(eid){var idx=S.travel.findIndex(function(t){return t.id===parseInt(eid);});if(idx>-1)S.travel[idx]=v;}else S.travel.unshift(v);
-  save();renderTravel();cm('vm');
+  var row={user_id:currentUser.id,dest:v.dest,country:v.country,start_date:v.start||null,end_date:v.end||null,companions:v.companions,emoji:v.emoji,tag:v.tag,note:v.note};
+  if(eid){
+    sb.from('travel').update(row).eq('id',parseInt(eid)).then(function(){
+      var idx=S.travel.findIndex(function(t){return t.id===parseInt(eid);});if(idx>-1)S.travel[idx]=v;renderTravel();cm('vm');
+    });
+  }else{
+    sb.from('travel').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      v.id=r.data[0].id;S.travel.unshift(v);renderTravel();cm('vm');
+    });
+  }
 }
 
 function editTravel(id){
@@ -431,7 +672,7 @@ function editTravel(id){
   om('vm');
 }
 
-function delTravel(id){if(!confirm('确认删除？'))return;S.travel=S.travel.filter(function(t){return t.id!==id;});save();renderTravel();}
+function delTravel(id){if(!confirm('确认删除？'))return;sb.from('travel').delete().eq('id',id).then(function(){S.travel=S.travel.filter(function(t){return t.id!==id;});renderTravel();});}
 
 function renderTravel(){
   document.getElementById('vsub').textContent=S.travel.length+' 次';
@@ -450,8 +691,17 @@ function saveBook(){
   var eid=document.getElementById('b-eid').value;
   var b={id:eid?parseInt(eid):Date.now(),title:document.getElementById('b-title').value.trim(),author:document.getElementById('b-auth').value.trim(),category:document.getElementById('b-cat').value,status:document.getElementById('b-stat').value,rating:document.getElementById('b-rate').value,date:document.getElementById('b-date').value,lang:document.getElementById('b-lang').value,note:document.getElementById('b-note').value.trim()};
   if(!b.title){alert('请填写书名');return;}
-  if(eid){var idx=S.books.findIndex(function(x){return x.id===parseInt(eid);});if(idx>-1)S.books[idx]=b;}else S.books.unshift(b);
-  save();renderBooks();cm('bm');
+  var row={user_id:currentUser.id,title:b.title,author:b.author,publisher:b.publisher,year:b.year,category:b.category,status:b.status,rating:b.rating,finish_date:b.date||null,language:b.lang,note:b.note};
+  if(eid){
+    sb.from('books').update(row).eq('id',parseInt(eid)).then(function(){
+      var idx=S.books.findIndex(function(x){return x.id===parseInt(eid);});if(idx>-1)S.books[idx]=b;renderBooks();cm('bm');
+    });
+  }else{
+    sb.from('books').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      b.id=r.data[0].id;S.books.unshift(b);renderBooks();cm('bm');
+    });
+  }
 }
 
 function editBook(id){
@@ -460,7 +710,7 @@ function editBook(id){
   om('bm');
 }
 
-function delBook(id){if(!confirm('确认删除？'))return;S.books=S.books.filter(function(b){return b.id!==id;});save();renderBooks();}
+function delBook(id){if(!confirm('确认删除？'))return;sb.from('books').delete().eq('id',id).then(function(){S.books=S.books.filter(function(b){return b.id!==id;});renderBooks();});}
 function fBook(f,btn){bF=f;document.querySelectorAll('#page-reading .fb').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderBooks();}
 
 function renderBooks(){
@@ -475,11 +725,12 @@ function om(id){document.getElementById(id).classList.add('open');}
 function cm(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
 
-function renderAll(){renderPortfolio();renderIdeas();renderTravel();renderBooks();}
+function renderAll(){renderPortfolioBar();renderPortfolio();renderIdeas();renderTravel();renderBooks();}
 
 (function(){var n=new Date(),days=['日','一','二','三','四','五','六'];document.getElementById('sd').innerHTML=n.getFullYear()+'.'+String(n.getMonth()+1).padStart(2,'0')+'.'+String(n.getDate()).padStart(2,'0')+'<br>周'+days[n.getDay()];})();
 
-load();renderAll();
+load();initAuth();
 </script>
+</div></div>
 </body>
 </html>
