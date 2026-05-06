@@ -387,6 +387,15 @@ var COLORS=['#2d5a3d','#4a7fa5','#c4713a','#d4ac0d','#6b5c8a','#3a7a7a','#a05c3a
 
 // ── AUTH ──
 async function initAuth(){
+  // Handle hash-based token from OAuth redirect
+  if(window.location.hash&&window.location.hash.includes('access_token')){
+    var r=await sb.auth.getSession();
+    if(r.data&&r.data.session){
+      window.history.replaceState(null,'',window.location.pathname);
+      await onLogin(r.data.session.user);
+      return;
+    }
+  }
   var r=await sb.auth.getSession();
   if(r.data&&r.data.session){await onLogin(r.data.session.user);}
   else{showLogin();}
@@ -396,7 +405,13 @@ async function initAuth(){
   });
 }
 async function googleLogin(){
-  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://rrx58.github.io'}});
+  await sb.auth.signInWithOAuth({
+    provider:'google',
+    options:{
+      redirectTo:'https://rrx58.github.io',
+      queryParams:{access_type:'offline',prompt:'consent'}
+    }
+  });
 }
 async function signOut(){await sb.auth.signOut();}
 async function onLogin(user){
@@ -529,6 +544,69 @@ function compHoldings(trades){
     else{var avg=hh.qty>0?hh.totalCost/hh.qty:0;hh.totalCost-=avg*Math.min(t.qty,hh.qty);hh.qty=Math.max(0,hh.qty-t.qty);}
   });
   return Object.values(h).filter(function(hh){return hh.qty>0.0001;});
+}
+
+// ── PORTFOLIO MANAGEMENT ──
+function renderPortfolioBar(){
+  var bar=document.getElementById('portfolio-bar');
+  var sel=document.getElementById('t-pid');
+  var btns='<button class="fb'+(activePortfolioId===null?' active':'')+'" onclick="selectPortfolio(null,this)">全部</button>';
+  S.portfolios.forEach(function(p){
+    var isActive=String(activePortfolioId)===String(p.id);
+    btns+='<button class="fb'+(isActive?' active':'')+'" onclick="selectPortfolio('+p.id+',this)" style="border-color:'+p.color+';'+(isActive?'background:'+p.color+';color:#fff':'color:'+p.color)+'">'+p.name+' <span onclick="event.stopPropagation();editPortfolio('+p.id+')" style="opacity:.6;font-size:10px;margin-left:4px">✎</span></button>';
+  });
+  if(bar)bar.innerHTML=btns;
+  if(sel){
+    sel.innerHTML='<option value="">— 未分配 —</option>';
+    S.portfolios.forEach(function(p){sel.innerHTML+='<option value="'+p.id+'">'+p.name+'</option>';});
+    if(activePortfolioId)sel.value=activePortfolioId;
+  }
+}
+
+function selectPortfolio(id,btn){
+  activePortfolioId=id;
+  renderPortfolioBar();
+  renderPortfolio();
+  if(document.getElementById('pt-a').style.display!=='none')renderAnalysis();
+}
+
+function openPortfolioModal(){
+  document.getElementById('pmt').textContent='新建组合';
+  document.getElementById('p-eid').value='';
+  document.getElementById('p-name').value='';
+  document.getElementById('p-desc').value='';
+  document.getElementById('p-color').value='#2d5a3d';
+  om('pm');
+}
+
+function editPortfolio(id){
+  var p=S.portfolios.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('pmt').textContent='编辑组合';
+  document.getElementById('p-eid').value=id;
+  document.getElementById('p-name').value=p.name;
+  document.getElementById('p-desc').value=p.desc||'';
+  document.getElementById('p-color').value=p.color;
+  om('pm');
+}
+
+function savePortfolio(){
+  var eid=document.getElementById('p-eid').value;
+  var name=document.getElementById('p-name').value.trim();
+  if(!name){alert('请填写组合名称');return;}
+  var p={id:eid?parseInt(eid):Date.now(),name:name,desc:document.getElementById('p-desc').value.trim(),color:document.getElementById('p-color').value};
+  if(eid){
+    sb.from('portfolios').update({name:p.name,description:p.desc,color:p.color}).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      var idx=S.portfolios.findIndex(function(x){return x.id===parseInt(eid);});
+      if(idx>-1)S.portfolios[idx]=p;
+      renderPortfolioBar();renderPortfolio();cm('pm');
+    });
+  }else{
+    sb.from('portfolios').insert({user_id:currentUser.id,name:p.name,description:p.desc,color:p.color}).select().then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      p.id=r.data[0].id;S.portfolios.push(p);renderPortfolioBar();renderPortfolio();cm('pm');
+    });
+  }
 }
 
 function getFilteredTrades(){
