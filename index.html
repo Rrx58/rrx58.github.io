@@ -110,6 +110,8 @@ textarea{resize:vertical;min-height:72px}
 .ei{font-size:36px;margin-bottom:12px}
 .et{font-size:13px}
 .pb{height:3px;border-radius:2px;background:var(--s2);margin-top:5px;overflow:hidden}
+.guru-card{background:#fff;border:1px solid var(--bd);border-radius:9px;padding:22px;cursor:pointer;transition:all .2s}
+.guru-card:hover{box-shadow:0 4px 18px rgba(0,0,0,.08);transform:translateY(-1px)}
 .pbf{height:100%;border-radius:3px;background:var(--ac)}
 .c0{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:0;overflow:hidden;margin-bottom:14px}
 </style>
@@ -135,6 +137,7 @@ textarea{resize:vertical;min-height:72px}
   <div class="nav-sec">投资</div>
   <div class="nav-item active" onclick="showPage('portfolio',this)">📊 投资组合</div>
   <div class="nav-item" onclick="showPage('ideas',this)">💡 投资想法</div>
+  <div class="nav-item" onclick="showPage('gurus',this)">🏆 投资Guru</div>
   <div class="nav-sec">生活</div>
   <div class="nav-item" onclick="showPage('travel',this)">✈️ 旅行</div>
   <div class="nav-item" onclick="showPage('reading',this)">📚 阅读</div>
@@ -256,6 +259,67 @@ textarea{resize:vertical;min-height:72px}
     <button class="fb" onclick="fIdea('已否定',this)">❌ 已否定</button>
   </div>
   <div class="ig" id="igrid"></div>
+</div>
+
+<!-- GURU PAGE -->
+<div id="page-gurus" class="page">
+  <div class="ph">
+    <h1 class="pt">投资 Guru</h1>
+    <span class="ps" id="guru-sub">0 位</span>
+    <div class="ha"><button class="btn bg bs" onclick="openGuruModal()">＋ 新增 Guru</button></div>
+  </div>
+  <div id="guru-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px"></div>
+</div>
+
+<!-- GURU DETAIL PAGE -->
+<div id="page-guru-detail" class="page">
+  <div class="ph">
+    <button class="btn bg bs" onclick="showPage('gurus',document.querySelector('.nav-item[onclick*=gurus]'))">← 返回</button>
+    <h1 class="pt" id="gd-name">Guru 详情</h1>
+    <div class="ha">
+      <button class="btn bg bs" onclick="editCurrentGuru()">编辑</button>
+      <button class="btn bd2 bs" onclick="deleteCurrentGuru()">删除</button>
+    </div>
+  </div>
+
+  <!-- GURU SUMMARY -->
+  <div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:24px;margin-bottom:20px">
+    <div style="display:flex;gap:20px;align-items:flex-start">
+      <div style="font-size:52px;min-width:60px;text-align:center" id="gd-emoji">👤</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:600;margin-bottom:4px" id="gd-title-line"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="gd-tags"></div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.8" id="gd-bio"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="guruTab('notes',this)">📝 笔记</button>
+    <button class="tab" onclick="guruTab('docs',this)">📁 资料夹</button>
+  </div>
+
+  <!-- NOTES TAB -->
+  <div id="gt-notes">
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em">笔记记录</div>
+      <button class="btn bg bs" onclick="openNoteModal()">＋ 新增笔记</button>
+    </div>
+    <div id="guru-notes-list"></div>
+  </div>
+
+  <!-- DOCS TAB -->
+  <div id="gt-docs" style="display:none">
+    <div style="margin-bottom:16px">
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px dashed var(--bd);border-radius:6px;cursor:pointer;background:var(--s2);font-size:13px">
+        📄 上传 PDF / 文件
+        <input type="file" id="guru-doc-input" accept=".pdf,.doc,.docx,.txt,.epub" multiple style="display:none" onchange="uploadGuruDocs(this)">
+      </label>
+      <span id="guru-doc-status" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-left:10px"></span>
+    </div>
+    <div id="guru-docs-list"></div>
+  </div>
 </div>
 
 <div id="page-travel" class="page">
@@ -405,6 +469,38 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<!-- GURU MODAL -->
+<div class="overlay" id="guru-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('guru-modal')">✕</button>
+    <div class="mt2" id="guru-modal-title">新增投资 Guru</div>
+    <div class="fr c2">
+      <div class="fg"><label>姓名</label><input id="g-name" placeholder="Warren Buffett"/></div>
+      <div class="fg"><label>头像 Emoji</label><input id="g-emoji" placeholder="👤"/></div>
+    </div>
+    <div class="fr c2">
+      <div class="fg"><label>头衔 / 身份</label><input id="g-title" placeholder="伯克希尔哈撒韦 CEO"/></div>
+      <div class="fg"><label>投资风格</label><input id="g-style" placeholder="价值投资 / 成长投资 / 宏观对冲"/></div>
+    </div>
+    <div class="fg" style="margin-bottom:14px"><label>标签（逗号分隔）</label><input id="g-tags" placeholder="价值投资, 长期持有, 巴菲特"/></div>
+    <div class="fg" style="margin-bottom:16px"><label>简介</label><textarea id="g-bio" style="min-height:120px" placeholder="投资理念、经历、代表作等"></textarea></div>
+    <input type="hidden" id="g-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveGuru()">保存</button><button class="btn bg" onclick="cm('guru-modal')">取消</button></div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="overlay" id="note-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('note-modal')">✕</button>
+    <div class="mt2" id="note-modal-title">新增笔记</div>
+    <div class="fg" style="margin-bottom:14px"><label>来源 / 标题（选填）</label><input id="n-source" placeholder="摘自《穷查理宝典》第3章 / 个人思考"/></div>
+    <div class="fg" style="margin-bottom:16px"><label>笔记内容</label><textarea id="n-content" style="min-height:160px" placeholder="记录关键观点、金句、个人感悟等"></textarea></div>
+    <input type="hidden" id="n-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveNote()">保存</button><button class="btn bg" onclick="cm('note-modal')">取消</button></div>
+  </div>
+</div>
+
 <!-- TRAVEL MODAL -->
 <div class="overlay" id="vm">
   <div class="modal">
@@ -507,7 +603,9 @@ const SUPABASE_KEY='sb_publishable_4Mhnq7iaWoIaZMt-tkZbuw_DWbq-PX6';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentUser=null;
 
-var S={portfolios:[],trades:[],ideas:[],travel:[],books:[]};var activePortfolioId=null;
+var S={portfolios:[],trades:[],ideas:[],travel:[],books:[],gurus:[],guruNotes:[],guruDocs:[]};var activePortfolioId=null;
+var currentGuruId=null;
+var currentGuru=null;
 var CHS={};
 var period='all',iF='all',bF='all';
 var COLORS=['#2d5a3d','#4a7fa5','#c4713a','#d4ac0d','#6b5c8a','#3a7a7a','#a05c3a','#7a3a5c','#5c7a3a','#3a5c7a'];
@@ -1304,11 +1402,13 @@ function importBookCSV(input){
   if(!file)return;
   var reader = new FileReader();
   reader.onload = async function(e){
-    var text = e.target.result.replace(/^﻿/,''); // remove BOM
-    var lines = text.split(String.fromCharCode(10)).filter(function(l){return l.trim() && !l.trim().startsWith('#');});
+    var text = e.target.result.replace(/^﻿/,'');
+    var nl = String.fromCharCode(10);
+    var lines = text.split(nl).map(function(l){return l.split(String.fromCharCode(13)).join('');}).filter(function(l){return l.trim() && !l.trim().startsWith('#');});
     if(lines.length < 2){alert('文件格式有误或没有数据行');return;}
     var headers = parseCSVLine(lines[0]);
-    var imported = 0, failed = 0;
+    var validCats = ['投资 / 金融','商业 / 管理','历史 / 传记','科学 / 技术','文学 / 小说','哲学 / 思想','其他'];
+    var validStats = ['想读','在读','已读'];
     var rows = [];
     for(var i=1;i<lines.length;i++){
       var vals = parseCSVLine(lines[i]);
@@ -1316,32 +1416,43 @@ function importBookCSV(input){
       var obj = {};
       headers.forEach(function(h,idx){obj[h.trim()]=vals[idx]?vals[idx].trim():'';});
       if(!obj.title)continue;
+      // Map category - if not in valid list, use 其他
+      var cat = obj.category||'其他';
+      if(validCats.indexOf(cat) === -1) cat = '其他';
+      // Map status
+      var stat = obj.status||'想读';
+      if(validStats.indexOf(stat) === -1) stat = '想读';
       rows.push({
         user_id: currentUser.id,
         title: obj.title,
         author: obj.author||'',
         publisher: obj.publisher||'',
         year: obj.year||'',
-        category: obj.category||'其他',
-        status: obj.status||'想读',
+        category: cat,
+        status: stat,
         rating: obj.rating||'',
         language: obj.language||'中文',
         note: obj.note||''
       });
     }
     if(!rows.length){alert('没有找到有效数据行');return;}
-    // Insert all rows
-    var r = await sb.from('books').insert(rows).select();
-    if(r.error){alert('导入失败：'+r.error.message);return;}
-    r.data.forEach(function(x){
-      S.books.unshift({
-        id:x.id,title:x.title,author:x.author||'',publisher:x.publisher||'',
-        year:x.year||'',category:x.category,status:x.status,rating:x.rating||'',
-        date:x.finish_date||'',lang:x.language||'中文',note:x.note||''
+    // Insert in batches of 20
+    var total = 0;
+    for(var b=0;b<rows.length;b+=20){
+      var batch = rows.slice(b,b+20);
+      var r = await sb.from('books').insert(batch).select();
+      if(r.error){alert('部分导入失败：'+r.error.message);break;}
+      r.data.forEach(function(x){
+        S.books.unshift({
+          id:x.id,title:x.title,author:x.author||'',publisher:x.publisher||'',
+          year:x.year||'',category:x.category,status:x.status,rating:x.rating||'',
+          date:x.finish_date||'',lang:x.language||'中文',note:x.note||''
+        });
+        total++;
       });
-    });
+    }
     renderBooks();
-    alert('成功导入 '+r.data.length+' 本书！');
+    alert('成功导入 '+total+' 本书！');
     input.value='';
   };
   reader.readAsText(file, 'UTF-8');
@@ -1402,7 +1513,260 @@ function om(id){document.getElementById(id).classList.add('open');}
 function cm(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
 
-function renderAll(){renderPortfolioBar();renderPortfolio();renderIdeas();renderTravel();renderBooks();}
+
+// ── GURUS ──
+function renderGurus(){
+  document.getElementById('guru-sub').textContent=S.gurus.length+' 位';
+  var g=document.getElementById('guru-grid');
+  if(!S.gurus.length){
+    g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">🏆</div><div class="et">还没有添加投资 Guru，点击右上角开始</div></div>';
+    return;
+  }
+  g.innerHTML=S.gurus.map(function(guru){
+    var tags=guru.tags?guru.tags.split(',').map(function(t){return '<span class="tag">'+t.trim()+'</span>';}).join(' '):'';
+    return '<div class="guru-card" onclick="openGuru('+guru.id+')">' +
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">' +
+        '<div style="font-size:36px">'+guru.emoji+'</div>' +
+        '<div>' +
+          '<div style="font-size:15px;font-weight:600">'+guru.name+'</div>' +
+          '<div style="font-size:11px;color:var(--t3);font-family:DM Mono,monospace;margin-top:2px">'+guru.title+'</div>' +
+        '</div>' +
+      '</div>' +
+      (guru.style?'<div style="margin-bottom:8px"><span class="tag to">'+guru.style+'</span></div>':'') +
+      (tags?'<div style="margin-bottom:10px;display:flex;gap:4px;flex-wrap:wrap">'+tags+'</div>':'') +
+      '<div style="font-size:12px;color:var(--t2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+guru.bio+'</div>' +
+      '<div style="font-size:10px;color:var(--t3);font-family:DM Mono,monospace;margin-top:10px">点击查看笔记与资料 →</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openGuruModal(){
+  document.getElementById('guru-modal-title').textContent='新增投资 Guru';
+  document.getElementById('g-eid').value='';
+  ['g-name','g-emoji','g-title','g-style','g-tags','g-bio'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('g-emoji').value='👤';
+  om('guru-modal');
+}
+
+function editCurrentGuru(){
+  if(!currentGuru)return;
+  document.getElementById('guru-modal-title').textContent='编辑 Guru';
+  document.getElementById('g-eid').value=currentGuruId;
+  document.getElementById('g-name').value=currentGuru.name;
+  document.getElementById('g-emoji').value=currentGuru.emoji||'👤';
+  document.getElementById('g-title').value=currentGuru.title||'';
+  document.getElementById('g-style').value=currentGuru.style||'';
+  document.getElementById('g-tags').value=currentGuru.tags||'';
+  document.getElementById('g-bio').value=currentGuru.bio||'';
+  om('guru-modal');
+}
+
+function saveGuru(){
+  var eid=document.getElementById('g-eid').value;
+  var name=document.getElementById('g-name').value.trim();
+  if(!name){alert('请填写姓名');return;}
+  var guru={
+    id:eid?parseInt(eid):null,
+    name:name,
+    emoji:document.getElementById('g-emoji').value.trim()||'👤',
+    title:document.getElementById('g-title').value.trim(),
+    style:document.getElementById('g-style').value.trim(),
+    tags:document.getElementById('g-tags').value.trim(),
+    bio:document.getElementById('g-bio').value.trim()
+  };
+  var row={user_id:currentUser.id,name:guru.name,avatar_emoji:guru.emoji,title:guru.title,style:guru.style,tags:guru.tags,bio:guru.bio};
+  if(eid){
+    sb.from('gurus').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      var idx=S.gurus.findIndex(function(x){return x.id===parseInt(eid);});
+      guru.id=parseInt(eid);
+      if(idx>-1)S.gurus[idx]=guru;
+      currentGuru=guru;
+      renderGurus();renderGuruDetail();cm('guru-modal');
+    });
+  }else{
+    sb.from('gurus').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      guru.id=r.data[0].id;
+      S.gurus.push(guru);
+      renderGurus();cm('guru-modal');
+    });
+  }
+}
+
+function deleteCurrentGuru(){
+  if(!confirm('确认删除此 Guru 及所有笔记和文件？'))return;
+  sb.from('gurus').delete().eq('id',currentGuruId).then(function(){
+    S.gurus=S.gurus.filter(function(g){return g.id!==currentGuruId;});
+    currentGuruId=null;currentGuru=null;
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('page-gurus').classList.add('active');
+    renderGurus();
+  });
+}
+
+async function openGuru(id){
+  currentGuruId=id;
+  currentGuru=S.gurus.find(function(g){return g.id===id;});
+  if(!currentGuru)return;
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-guru-detail').classList.add('active');
+  // Load notes and docs
+  var r1=await sb.from('guru_notes').select('*').eq('guru_id',id).order('created_at',{ascending:false});
+  S.guruNotes=r1.data||[];
+  var r2=await sb.from('guru_docs').select('*').eq('guru_id',id).order('created_at',{ascending:false});
+  S.guruDocs=r2.data||[];
+  renderGuruDetail();
+}
+
+function renderGuruDetail(){
+  if(!currentGuru)return;
+  document.getElementById('gd-name').textContent=currentGuru.name;
+  document.getElementById('gd-emoji').textContent=currentGuru.emoji||'👤';
+  var titleLine=[];
+  if(currentGuru.title)titleLine.push(currentGuru.title);
+  if(currentGuru.style)titleLine.push(currentGuru.style);
+  document.getElementById('gd-title-line').textContent=titleLine.join(' · ');
+  var tagsEl=document.getElementById('gd-tags');
+  tagsEl.innerHTML='';
+  if(currentGuru.tags){
+    currentGuru.tags.split(',').forEach(function(t){
+      var span=document.createElement('span');span.className='tag';span.textContent=t.trim();tagsEl.appendChild(span);
+    });
+  }
+  document.getElementById('gd-bio').textContent=currentGuru.bio||'';
+  renderGuruNotes();
+  renderGuruDocs();
+}
+
+function guruTab(tab,btn){
+  document.querySelectorAll('#page-guru-detail .tabs .tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('gt-notes').style.display=tab==='notes'?'block':'none';
+  document.getElementById('gt-docs').style.display=tab==='docs'?'block':'none';
+}
+
+// ── NOTES ──
+function openNoteModal(id){
+  document.getElementById('note-modal-title').textContent=id?'编辑笔记':'新增笔记';
+  document.getElementById('n-eid').value=id||'';
+  if(id){
+    var note=S.guruNotes.find(function(n){return n.id===id;});
+    if(note){document.getElementById('n-source').value=note.source||'';document.getElementById('n-content').value=note.content||'';}
+  }else{
+    document.getElementById('n-source').value='';document.getElementById('n-content').value='';
+  }
+  om('note-modal');
+}
+
+function saveNote(){
+  var eid=document.getElementById('n-eid').value;
+  var content=document.getElementById('n-content').value.trim();
+  if(!content){alert('请填写笔记内容');return;}
+  var row={user_id:currentUser.id,guru_id:currentGuruId,content:content,source:document.getElementById('n-source').value.trim()};
+  if(eid){
+    sb.from('guru_notes').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败');return;}
+      var idx=S.guruNotes.findIndex(function(n){return n.id===parseInt(eid);});
+      if(idx>-1)S.guruNotes[idx]={...S.guruNotes[idx],...row};
+      renderGuruNotes();cm('note-modal');
+    });
+  }else{
+    sb.from('guru_notes').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      S.guruNotes.unshift(r.data[0]);
+      renderGuruNotes();cm('note-modal');
+    });
+  }
+}
+
+function deleteNote(id){
+  if(!confirm('确认删除此笔记？'))return;
+  sb.from('guru_notes').delete().eq('id',id).then(function(){
+    S.guruNotes=S.guruNotes.filter(function(n){return n.id!==id;});renderGuruNotes();
+  });
+}
+
+function renderGuruNotes(){
+  var el=document.getElementById('guru-notes-list');
+  if(!S.guruNotes.length){
+    el.innerHTML='<div class="empty"><div class="ei">📝</div><div class="et">还没有笔记，点击「新增笔记」开始记录</div></div>';
+    return;
+  }
+  el.innerHTML=S.guruNotes.map(function(n){
+    var dt=n.created_at?n.created_at.substr(0,16).replace('T',' '):'';
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:20px;margin-bottom:12px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">' +
+        '<div>' +
+          (n.source?'<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--a2);margin-bottom:4px">📌 '+n.source+'</div>':'') +
+          '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--t3)">'+dt+'</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn bg bs" onclick="openNoteModal('+n.id+')">编辑</button>' +
+          '<button class="btn bd2 bs" onclick="deleteNote('+n.id+')">删</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--tx);line-height:1.8;white-space:pre-wrap">'+n.content+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── DOCS ──
+async function uploadGuruDocs(input){
+  var files=Array.from(input.files);
+  if(!files.length)return;
+  var status=document.getElementById('guru-doc-status');
+  status.textContent='上传中...';
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    var path=currentUser.id+'/'+currentGuruId+'/'+Date.now()+'-'+file.name;
+    var r=await sb.storage.from('guru-docs').upload(path,file);
+    if(!r.error){
+      var urlData=sb.storage.from('guru-docs').getPublicUrl(path);
+      var r2=await sb.from('guru_docs').insert({
+        user_id:currentUser.id,guru_id:currentGuruId,
+        name:file.name,url:urlData.data.publicUrl,
+        size_kb:Math.round(file.size/1024)
+      }).select();
+      if(!r2.error)S.guruDocs.unshift(r2.data[0]);
+    }
+  }
+  status.textContent='上传完成';
+  renderGuruDocs();
+  input.value='';
+}
+
+function deleteDoc(id){
+  if(!confirm('确认删除此文件？'))return;
+  sb.from('guru_docs').delete().eq('id',id).then(function(){
+    S.guruDocs=S.guruDocs.filter(function(d){return d.id!==id;});renderGuruDocs();
+  });
+}
+
+function renderGuruDocs(){
+  var el=document.getElementById('guru-docs-list');
+  if(!S.guruDocs.length){
+    el.innerHTML='<div class="empty"><div class="ei">📁</div><div class="et">还没有文件，点击上方按钮上传</div></div>';
+    return;
+  }
+  el.innerHTML=S.guruDocs.map(function(d){
+    var dt=d.created_at?d.created_at.substr(0,10):'';
+    var icon=d.name.endsWith('.pdf')?'📄':d.name.endsWith('.epub')?'📚':'📎';
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px">' +
+      '<div style="font-size:28px">'+icon+'</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:600">'+d.name+'</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--t3);margin-top:2px">'+(d.size_kb?d.size_kb+'KB · ':'')+dt+'</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px">' +
+        '<a href="'+d.url+'" target="_blank" class="btn bg bs">打开</a>' +
+        '<button class="btn bd2 bs" onclick="deleteDoc('+d.id+')">删</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderAll(){renderPortfolioBar();renderPortfolio();renderIdeas();renderGurus();renderTravel();renderBooks();}
 
 (function(){var n=new Date(),days=['日','一','二','三','四','五','六'];document.getElementById('sd').innerHTML=n.getFullYear()+'.'+String(n.getMonth()+1).padStart(2,'0')+'.'+String(n.getDate()).padStart(2,'0')+'<br>周'+days[n.getDay()];})();
 
