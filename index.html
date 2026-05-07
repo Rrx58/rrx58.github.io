@@ -91,7 +91,7 @@ textarea{resize:vertical;min-height:72px}
 .vc-note{font-size:12px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .vc-acts{display:flex;gap:6px;margin-top:10px}
 .blist{display:flex;flex-direction:column;gap:10px}
-.bk{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;transition:all .2s}
+.bk{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;transition:all .2s;height:fit-content}
 .bk:hover{box-shadow:0 3px 14px rgba(0,0,0,.06)}
 .bk-sp{width:44px;min-width:44px;height:58px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,var(--a2),#e8954a)}
 .bk-info{flex:1}
@@ -298,6 +298,7 @@ textarea{resize:vertical;min-height:72px}
   <div class="tabs">
     <button class="tab active" onclick="guruTab('notes',this)">📝 笔记</button>
     <button class="tab" onclick="guruTab('docs',this)">📁 资料夹</button>
+    <button class="tab" onclick="guruTab('links',this)">🔗 链接</button>
   </div>
 
   <!-- NOTES TAB -->
@@ -450,6 +451,38 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<!-- IMPORT HOLDINGS MODAL -->
+<div class="overlay" id="import-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('import-modal')">✕</button>
+    <div class="mt2">导入初始持仓</div>
+    <div style="background:var(--s2);border-radius:6px;padding:14px;margin-bottom:18px;font-size:12px;color:var(--t2);line-height:1.8">
+      适合将现有持仓作为初始组合录入。每行一笔，系统会生成一条<b>买入记录</b>。<br>
+      CSV 格式：<span style="font-family:DM Mono,monospace;font-size:11px">代码, 名称, 市场, 数量, 均摊成本, 货币, 行业, 日期</span>
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label>归属组合（选填）</label>
+      <select id="import-pid"><option value="">— 未分配 —</option></select>
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label>直接粘贴持仓数据（每行一笔）</label>
+      <textarea id="import-text" style="min-height:160px;font-family:DM Mono,monospace;font-size:12px" placeholder="AAPL, Apple Inc, 美股, 100, 180.50, USD, 科技, 2024-01-01
+HKG:0700, 腾讯控股, 港股, 500, 320.00, HKD, 科技, 2024-01-01"></textarea>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        或上传 CSV 文件：
+        <input type="file" id="import-csv-file" accept=".csv" style="font-size:12px">
+      </label>
+    </div>
+    <div id="import-preview" style="display:none;margin-bottom:14px"></div>
+    <div class="fa">
+      <button class="btn bp" onclick="importHoldings()">确认导入</button>
+      <button class="btn bg" onclick="cm('import-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- IDEA MODAL -->
 <div class="overlay" id="im">
   <div class="modal">
@@ -467,6 +500,15 @@ textarea{resize:vertical;min-height:72px}
     <input type="hidden" id="i-eid"/>
     <div class="fa"><button class="btn bp" onclick="saveIdea()">保存</button><button class="btn bg" onclick="cm('im')">取消</button></div>
   </div>
+  <!-- LINKS TAB -->
+  <div id="gt-links" style="display:none">
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em">相关链接</div>
+      <button class="btn bg bs" onclick="openLinkModal()">＋ 添加链接</button>
+    </div>
+    <div id="guru-links-list"></div>
+  </div>
+
 </div>
 
 <!-- GURU MODAL -->
@@ -498,6 +540,31 @@ textarea{resize:vertical;min-height:72px}
     <div class="fg" style="margin-bottom:16px"><label>笔记内容</label><textarea id="n-content" style="min-height:160px" placeholder="记录关键观点、金句、个人感悟等"></textarea></div>
     <input type="hidden" id="n-eid"/>
     <div class="fa"><button class="btn bp" onclick="saveNote()">保存</button><button class="btn bg" onclick="cm('note-modal')">取消</button></div>
+  </div>
+</div>
+
+<!-- LINK MODAL -->
+<div class="overlay" id="link-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('link-modal')">✕</button>
+    <div class="mt2" id="link-modal-title">添加链接</div>
+    <div class="fr c2">
+      <div class="fg"><label>链接名称</label><input id="l-name" placeholder="官方网站 / 年报 / 访谈视频"/></div>
+      <div class="fg"><label>类型</label>
+        <select id="l-type">
+          <option>官方网站</option>
+          <option>年报 / 信函</option>
+          <option>访谈 / 演讲</option>
+          <option>文章 / 研报</option>
+          <option>视频</option>
+          <option>其他</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:14px"><label>URL</label><input id="l-url" placeholder="https://"/></div>
+    <div class="fg" style="margin-bottom:16px"><label>备注（选填）</label><input id="l-note" placeholder="简短描述"/></div>
+    <input type="hidden" id="l-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveLink()">保存</button><button class="btn bg" onclick="cm('link-modal')">取消</button></div>
   </div>
 </div>
 
@@ -603,7 +670,7 @@ const SUPABASE_KEY='sb_publishable_4Mhnq7iaWoIaZMt-tkZbuw_DWbq-PX6';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentUser=null;
 
-var S={portfolios:[],trades:[],ideas:[],travel:[],books:[],gurus:[],guruNotes:[],guruDocs:[]};var activePortfolioId=null;
+var S={portfolios:[],trades:[],ideas:[],travel:[],books:[],gurus:[],guruNotes:[],guruDocs:[],guruLinks:[]};var activePortfolioId=null;
 var currentGuruId=null;
 var currentGuru=null;
 var CHS={};
@@ -1616,6 +1683,8 @@ async function openGuru(id){
   S.guruNotes=r1.data||[];
   var r2=await sb.from('guru_docs').select('*').eq('guru_id',id).order('created_at',{ascending:false});
   S.guruDocs=r2.data||[];
+  var r3=await sb.from('guru_links').select('*').eq('guru_id',id).order('created_at',{ascending:false});
+  S.guruLinks=r3.data||[];
   renderGuruDetail();
 }
 
@@ -1637,6 +1706,7 @@ function renderGuruDetail(){
   document.getElementById('gd-bio').textContent=currentGuru.bio||'';
   renderGuruNotes();
   renderGuruDocs();
+  renderGuruLinks();
 }
 
 function guruTab(tab,btn){
@@ -1765,6 +1835,166 @@ function renderGuruDocs(){
     '</div>';
   }).join('');
 }
+
+
+// ── IMPORT HOLDINGS ──
+function om_import(){
+  // Populate portfolio select
+  var sel=document.getElementById('import-pid');
+  sel.innerHTML='<option value="">— 未分配 —</option>';
+  S.portfolios.forEach(function(p){sel.innerHTML+='<option value="'+p.id+'">'+p.name+'</option>';});
+  if(activePortfolioId)sel.value=activePortfolioId;
+  document.getElementById('import-text').value='';
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('import-csv-file').value='';
+  om('import-modal');
+}
+
+function parseHoldingsText(text){
+  var nl=String.fromCharCode(10);
+  var lines=text.split(nl).map(function(l){return l.split(String.fromCharCode(13)).join('').trim();}).filter(function(l){return l && !l.startsWith('#');});
+  var rows=[];
+  lines.forEach(function(line){
+    var parts=line.split(',').map(function(p){return p.trim();});
+    if(parts.length<5)return;
+    var today=td();
+    rows.push({
+      code:parts[0]||'',
+      name:parts[1]||'',
+      market:parts[2]||'美股',
+      qty:parseFloat(parts[3])||0,
+      price:parseFloat(parts[4])||0,
+      currency:parts[5]||'USD',
+      industry:parts[6]||'其他',
+      date:parts[7]||today
+    });
+  });
+  return rows;
+}
+
+async function importHoldings(){
+  var text=document.getElementById('import-text').value.trim();
+  var fileInput=document.getElementById('import-csv-file');
+  var pid=document.getElementById('import-pid').value||null;
+
+  var processRows=async function(rawText){
+    var rows=parseHoldingsText(rawText);
+    if(!rows.length){alert('没有找到有效数据，请检查格式');return;}
+    var trades=rows.map(function(r){
+      return{user_id:currentUser.id,portfolio_id:pid||null,direction:'buy',
+        code:r.code,name:r.name,market:r.market,qty:r.qty,price:r.price,
+        currency:r.currency,trade_date:r.date,industry:r.industry,note:'初始持仓导入'};
+    });
+    var r=await sb.from('trades').insert(trades).select();
+    if(r.error){alert('导入失败：'+r.error.message);return;}
+    r.data.forEach(function(x){
+      S.trades.unshift({id:x.id,portfolioId:x.portfolio_id,direction:'buy',
+        code:x.code,name:x.name,market:x.market,qty:Number(x.qty),price:Number(x.price),
+        currency:x.currency,date:x.trade_date,industry:x.industry,note:x.note||''});
+    });
+    renderPortfolio();cm('import-modal');
+    alert('成功导入 '+r.data.length+' 笔持仓记录！');
+  };
+
+  if(fileInput.files[0]){
+    var reader=new FileReader();
+    reader.onload=function(e){processRows(e.target.result.replace(/^﻿/,''));};
+    reader.readAsText(fileInput.files[0],'UTF-8');
+  }else if(text){
+    processRows(text);
+  }else{
+    alert('请粘贴持仓数据或上传 CSV 文件');
+  }
+}
+
+// Override om to populate import modal
+var _origOm=om;
+om=function(id){
+  if(id==='import-modal'){om_import();return;}
+  _origOm(id);
+};
+
+// ── GURU LINKS ──
+function openLinkModal(id){
+  document.getElementById('link-modal-title').textContent=id?'编辑链接':'添加链接';
+  document.getElementById('l-eid').value=id||'';
+  if(id){
+    var lnk=S.guruLinks.find(function(x){return x.id===id;});
+    if(lnk){
+      document.getElementById('l-name').value=lnk.name||'';
+      document.getElementById('l-url').value=lnk.url||'';
+      document.getElementById('l-note').value=lnk.note||'';
+      document.getElementById('l-type').value=lnk.link_type||'其他';
+    }
+  }else{
+    ['l-name','l-url','l-note'].forEach(function(x){document.getElementById(x).value='';});
+  }
+  om('link-modal');
+}
+
+function saveLink(){
+  var eid=document.getElementById('l-eid').value;
+  var name=document.getElementById('l-name').value.trim();
+  var url=document.getElementById('l-url').value.trim();
+  if(!name||!url){alert('请填写链接名称和 URL');return;}
+  var row={user_id:currentUser.id,guru_id:currentGuruId,name:name,url:url,
+    link_type:document.getElementById('l-type').value,
+    note:document.getElementById('l-note').value.trim()};
+  if(eid){
+    sb.from('guru_links').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败');return;}
+      var idx=S.guruLinks.findIndex(function(x){return x.id===parseInt(eid);});
+      if(idx>-1)S.guruLinks[idx]={...S.guruLinks[idx],...row,id:parseInt(eid)};
+      renderGuruLinks();cm('link-modal');
+    });
+  }else{
+    sb.from('guru_links').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      S.guruLinks.unshift(r.data[0]);renderGuruLinks();cm('link-modal');
+    });
+  }
+}
+
+function deleteLink(id){
+  if(!confirm('确认删除？'))return;
+  sb.from('guru_links').delete().eq('id',id).then(function(){
+    S.guruLinks=S.guruLinks.filter(function(x){return x.id!==id;});renderGuruLinks();
+  });
+}
+
+function renderGuruLinks(){
+  var el=document.getElementById('guru-links-list');
+  if(!S.guruLinks.length){
+    el.innerHTML='<div class="empty"><div class="ei">🔗</div><div class="et">还没有链接，点击「添加链接」</div></div>';
+    return;
+  }
+  var typeIcon={'官方网站':'🌐','年报 / 信函':'📑','访谈 / 演讲':'🎤','文章 / 研报':'📰','视频':'🎬','其他':'🔗'};
+  el.innerHTML=S.guruLinks.map(function(lnk){
+    var icon=typeIcon[lnk.link_type]||'🔗';
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px">' +
+      '<div style="font-size:24px">'+icon+'</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:600">'+lnk.name+'</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--a3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px">'+lnk.url+'</div>' +
+        (lnk.note?'<div style="font-size:11px;color:var(--t3);margin-top:2px">'+lnk.note+'</div>':'') +
+      '</div>' +
+      '<span class="tag tb">'+lnk.link_type+'</span>' +
+      '<div style="display:flex;gap:6px">' +
+        '<a href="'+lnk.url+'" target="_blank" class="btn bg bs">打开</a>' +
+        '<button class="btn bg bs" onclick="openLinkModal('+lnk.id+')">编辑</button>' +
+        '<button class="btn bd2 bs" onclick="deleteLink('+lnk.id+')">删</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// Update guruTab to handle links
+var _origGuruTab=guruTab;
+guruTab=function(tab,btn){
+  _origGuruTab(tab,btn);
+  var linksEl=document.getElementById('gt-links');
+  if(linksEl)linksEl.style.display=tab==='links'?'block':'none';
+};
 
 function renderAll(){renderPortfolioBar();renderPortfolio();renderIdeas();renderGurus();renderTravel();renderBooks();}
 
