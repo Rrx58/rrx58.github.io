@@ -155,6 +155,7 @@ textarea{resize:vertical;min-height:72px}
     <span class="ps" id="port-sub">0 笔持仓</span>
     <div class="ha">
       <button class="btn bg bs" onclick="openPortfolioModal()">＋ 新建组合</button>
+      <button class="btn bg bs" onclick="om('import-modal')">⬆ 导入持仓</button>
       <button class="btn bg bs" onclick="tfp('trade-form')">＋ 录入交易</button>
     </div>
   </div>
@@ -419,7 +420,7 @@ textarea{resize:vertical;min-height:72px}
     <button class="fb" onclick="fBook('在读',this)">📖 在读</button>
     <button class="fb" onclick="fBook('已读',this)">✅ 已读</button>
   </div>
-  <div class="blist" id="blist"></div>
+  <div id="blist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px"></div>
 </div>
 
 </main></div>
