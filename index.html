@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RON RX · 个人空间</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=DM+Mono:wght@300;400&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f4f1ed;--sf:#fff;--s2:#f0ece5;--bd:#e2dbd0;--tx:#1a1714;--t2:#6b6460;--t3:#a09890;--ac:#2d5a3d;--a2:#c4713a;--a3:#4a7fa5;--red:#b03a2e;--grn:#1e8449;--sb:#1c1917;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif SC',serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;line-height:1.7}
+.app{display:flex;min-height:100vh}
+.sidebar{width:210px;background:var(--sb);display:flex;flex-direction:column;padding:36px 0 28px;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.logo{padding:0 24px 26px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:18px}
+.logo-name{font-family:'Fraunces',serif;font-size:20px;color:#fff;letter-spacing:.02em}
+.logo-sub{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.28);letter-spacing:.12em;margin-top:3px}
+.nav-sec{padding:0 16px 6px;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.2);letter-spacing:.1em;margin-top:14px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 24px;cursor:pointer;color:rgba(255,255,255,.5);font-size:13px;border-left:2px solid transparent;transition:all .18s}
+.nav-item:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04)}
+.nav-item.active{color:#fff;border-left-color:var(--a2);background:rgba(255,255,255,.07)}
+.sb-foot{margin-top:auto;padding:18px 24px 0;border-top:1px solid rgba(255,255,255,.06)}
+.sb-date{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.24);line-height:1.8}
+.main{margin-left:210px;flex:1;padding:44px 48px}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:baseline;gap:14px;margin-bottom:34px;padding-bottom:16px;border-bottom:1px solid var(--bd)}
+.pt{font-family:'Fraunces',serif;font-size:26px;font-weight:300}
+.ps{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)}
+.ha{margin-left:auto;display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-family:'Noto Serif SC',serif;font-size:13px;transition:all .18s}
+.bp{background:var(--ac);color:#fff}.bp:hover{background:#234a31}
+.bg{background:transparent;color:var(--t2);border:1px solid var(--bd)}.bg:hover{background:var(--s2)}
+.bd2{background:#fdf0ef;color:var(--red);border:1px solid #f3c8c5}.bd2:hover{background:#fce4e2}
+.bs{padding:5px 11px;font-size:12px}
+.fp{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:22px;margin-bottom:22px;display:none}
+.fp.open{display:block}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.06em}
+.fr{display:grid;gap:14px;margin-bottom:14px}
+.c4{grid-template-columns:repeat(4,1fr)}.c3{grid-template-columns:repeat(3,1fr)}.c2{grid-template-columns:repeat(2,1fr)}
+input,select,textarea{padding:8px 11px;border:1px solid var(--bd);border-radius:5px;font-family:'Noto Serif SC',serif;font-size:13px;background:#fff;color:var(--tx);width:100%;transition:border-color .18s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac)}
+textarea{resize:vertical;min-height:72px}
+.fa{display:flex;gap:8px;margin-top:6px}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.sc{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:18px 20px}
+.sl{font-family:'DM Mono',monospace;font-size:9px;color:var(--t3);letter-spacing:.09em;margin-bottom:6px}
+.sv{font-family:'DM Mono',monospace;font-size:19px;color:var(--tx)}
+.tabs{display:flex;gap:2px;margin-bottom:20px;background:var(--s2);border-radius:7px;padding:3px;width:fit-content}
+.tab{padding:6px 16px;border-radius:5px;cursor:pointer;font-size:12px;color:var(--t2);transition:all .18s;font-family:'DM Mono',monospace;border:none;background:transparent}
+.tab.active{background:#fff;color:var(--tx);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:9px 13px;font-family:'DM Mono',monospace;font-size:9px;color:var(--t3);letter-spacing:.08em;border-bottom:1px solid var(--bd);font-weight:400}
+.tbl td{padding:11px 13px;border-bottom:1px solid var(--s2);font-size:13px;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--s2)}
+.tr{text-align:right}
+.mono{font-family:'DM Mono',monospace}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-family:'DM Mono',monospace;background:var(--s2);color:var(--t2)}
+.tg{background:#e9f4ec;color:var(--grn)}.trt{background:#fdf0ef;color:var(--red)}.tb{background:#e8f2f8;color:var(--a3)}.to{background:#fdf3ec;color:var(--a2)}
+.cw{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:20px;margin-bottom:14px}
+.ct{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em;margin-bottom:14px}
+.cr{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.bl{display:flex;flex-direction:column;gap:10px}
+.bi{display:flex;align-items:center;gap:12px}
+.bll{font-size:12px;color:var(--t2);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blt{flex:1;height:5px;background:var(--s2);border-radius:3px;overflow:hidden}
+.blf{height:100%;border-radius:3px}
+.blp{font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);width:40px;text-align:right;flex-shrink:0}
+.fbar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.fb{padding:5px 13px;border-radius:20px;border:1px solid var(--bd);background:#fff;cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;color:var(--t2);transition:all .18s}
+.fb:hover,.fb.active{background:var(--tx);color:#fff;border-color:var(--tx)}
+.ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.ic{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:20px;transition:all .2s}
+.ic:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-1px)}
+.ic-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.ic-name{font-size:15px;font-weight:600}
+.ic-code{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);margin-top:1px}
+.ic-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.ic-note{font-size:12px;color:var(--t2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ic-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)}
+.ic-date{font-family:'DM Mono',monospace;font-size:9px;color:var(--t3)}
+.vg{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:16px}
+.vc{background:#fff;border:1px solid var(--bd);border-radius:9px;overflow:hidden;transition:all .2s}
+.vc:hover{box-shadow:0 5px 20px rgba(0,0,0,.09);transform:translateY(-2px)}
+.vc-cover{height:110px;display:flex;align-items:center;justify-content:center;font-size:42px;background:linear-gradient(135deg,var(--ac),var(--a3))}
+.vc-body{padding:15px}
+.vc-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.vc-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);margin-bottom:6px}
+.vc-note{font-size:12px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.vc-acts{display:flex;gap:6px;margin-top:10px}
+.blist{gap:10px}
+.bk{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;transition:all .2s}
+.bk:hover{box-shadow:0 3px 14px rgba(0,0,0,.06)}
+.bk-sp{width:44px;min-width:44px;height:58px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,var(--a2),#e8954a)}
+.bk-info{flex:1}
+.bk-title{font-size:14px;font-weight:600;margin-bottom:2px}
+.bk-auth{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);margin-bottom:8px}
+.bk-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.bk-note{font-size:12px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bk-acts{display:flex;flex-direction:column;gap:5px;min-width:fit-content}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:200;display:none;align-items:center;justify-content:center;padding:32px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:10px;padding:32px;width:100%;max-width:560px;max-height:82vh;overflow-y:auto;position:relative}
+.mt2{font-family:'Fraunces',serif;font-size:20px;font-weight:300;margin-bottom:22px}
+.mc{position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--t3);padding:4px}
+.mc:hover{color:var(--tx)}
+.empty{text-align:center;padding:48px 20px;color:var(--t3)}
+.ei{font-size:36px;margin-bottom:12px}
+.et{font-size:13px}
+.pb{height:3px;border-radius:2px;background:var(--s2);margin-top:5px;overflow:hidden}
+.guru-card{background:#fff;border:1px solid var(--bd);border-radius:9px;padding:22px;cursor:pointer;transition:all .2s}
+.guru-card:hover{box-shadow:0 4px 18px rgba(0,0,0,.08);transform:translateY(-1px)}
+.pbf{height:100%;border-radius:3px;background:var(--ac)}
+.c0{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:0;overflow:hidden;margin-bottom:14px}
+</style>
+</head>
+<body>
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:flex;position:fixed;inset:0;background:var(--bg);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:24px">
+  <div style="text-align:center">
+    <div style="font-family:'Fraunces',serif;font-size:36px;color:var(--tx);margin-bottom:8px">RON RX</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);letter-spacing:.12em">PERSONAL SPACE</div>
+  </div>
+  <button onclick="googleLogin()" style="display:flex;align-items:center;gap:12px;padding:14px 28px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-family:'Noto Serif SC',serif;font-size:14px;color:var(--tx);transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+    使用 Google 账号登录
+  </button>
+  <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3)">登录后数据安全存储在云端</div>
+</div>
+
+<div id="app-wrap" style="display:none;min-height:100vh;width:100%">
+<div class="app">
+<nav class="sidebar">
+  <div class="logo"><div class="logo-name">RON RX</div><div class="logo-sub">PERSONAL SPACE</div></div>
+  <div class="nav-sec">投资</div>
+  <div class="nav-item active" onclick="showPage('portfolio',this)">📊 投资组合</div>
+  <div class="nav-item" onclick="showPage('ideas',this)">💡 投资想法</div>
+  <div class="nav-item" onclick="showPage('gurus',this)">🏆 投资Guru</div>
+  <div class="nav-sec">生活</div>
+  <div class="nav-item" onclick="showPage('travel',this)">✈️ 旅行</div>
+  <div class="nav-item" onclick="showPage('reading',this)">📚 阅读</div>
+  <div class="sb-foot">
+  <div class="sb-date" id="sd"></div>
+  <div style="margin-top:10px;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="user-email"></div>
+  <button onclick="signOut()" style="margin-top:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:11px;padding:5px 10px;border-radius:4px;cursor:pointer;width:100%">退出登录</button>
+</div>
+</nav>
+<main class="main">
+
+<div id="page-portfolio" class="page active">
+  <div class="ph">
+    <h1 class="pt">投资组合</h1>
+    <span class="ps" id="port-sub">0 笔持仓</span>
+    <div class="ha">
+      <button class="btn bg bs" onclick="openPortfolioModal()">＋ 新建组合</button>
+      <button class="btn bg bs" onclick="om_import()">⬆ 导入持仓</button>
+      <button class="btn bg bs" onclick="tfp('trade-form')">＋ 录入交易</button>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO SELECTOR BAR -->
+  <div id="portfolio-bar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center">
+    <button class="fb active" onclick="selectPortfolio(null,this)" style="font-size:12px">全部</button>
+  </div>
+
+  <div class="sg">
+    <div class="sc"><div class="sl">总成本</div><div class="sv" id="s-cost">—</div></div>
+    <div class="sc"><div class="sl">持仓标的</div><div class="sv" id="s-count">0</div></div>
+    <div class="sc"><div class="sl">交易笔数</div><div class="sv" id="s-trades">0</div></div>
+    <div class="sc"><div class="sl">最近交易</div><div class="sv" id="s-last" style="font-size:13px">—</div></div>
+  </div>
+
+  <div class="fp" id="trade-form">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em;margin-bottom:14px">录入交易</div>
+    <div style="margin-bottom:18px">
+      <label style="display:flex;align-items:center;justify-content:center;gap:10px;border:2px dashed var(--border);border-radius:8px;padding:14px;cursor:pointer;background:var(--s2)">
+        <span style="font-size:20px">📋</span>
+        <div>
+          <div style="font-size:13px;color:var(--t2)">上传交易截图，AI 自动读取</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">支持券商 App / 网页截图，自动填写交易信息</div>
+        </div>
+        <input type="file" id="trade-img-input" accept="image/*" style="display:none" onchange="scanTradeImg(this)">
+      </label>
+      <div id="trade-scan-row" style="display:none;margin-top:8px;align-items:center;gap:10px">
+        <img id="trade-scan-thumb" style="width:60px;height:40px;object-fit:cover;border-radius:4px;border:1px solid var(--border)">
+        <span id="trade-scan-msg" style="font-family:'DM Mono',monospace;font-size:11px"></span>
+      </div>
+    </div>
+    <div class="fr c4">
+      <div class="fg"><label>归属组合</label><select id="t-pid"><option value="">— 未分配 —</option></select></div>
+      <div class="fg"><label>方向</label><select id="td"><option value="buy">买入</option><option value="sell">卖出</option></select></div>
+      <div class="fg"><label>代码</label><input id="tc" placeholder="AAPL / HKG:0700"/></div>
+      <div class="fg"><label>名称</label><input id="tn" placeholder="公司名称"/></div>
+    </div>
+    <div class="fr c4">
+      <div class="fg"><label>市场</label><select id="tm"><option>美股</option><option>港股</option><option>ETF</option></select></div>
+      <div class="fg"><label>数量</label><input id="tq" type="number" placeholder="100"/></div>
+      <div class="fg"><label>价格</label><input id="tp" type="number" step="0.01" placeholder="0.00"/></div>
+      <div class="fg"><label>货币</label><select id="tcu"><option value="USD">USD</option><option value="HKD">HKD</option></select></div>
+    </div>
+    <div class="fr c3">
+      <div class="fg"><label>日期</label><input id="tdt" type="date"/></div>
+      <div class="fg"><label>行业</label><select id="tind"><option>科技</option><option>金融</option><option>消费</option><option>医疗</option><option>能源</option><option>工业</option><option>ETF/指数</option><option>其他</option></select></div>
+      <div class="fg"><label>备注</label><input id="tnote"/></div>
+    </div>
+    <div class="fa">
+      <button class="btn bp" onclick="saveTrade()">保存</button>
+      <button class="btn bg" onclick="tfp('trade-form')">取消</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="ptab('h',this)">持仓明细</button>
+    <button class="tab" onclick="ptab('a',this)">组合分析</button>
+    <button class="tab" onclick="ptab('r',this)">交易记录</button>
+  </div>
+
+  <div id="pt-h">
+    <div class="c0"><table class="tbl">
+      <thead><tr><th>代码 / 名称</th><th>市场</th><th>行业</th><th>归属组合</th><th class="tr">持仓数量</th><th class="tr">均摊成本</th><th class="tr">总成本</th><th class="tr">仓位占比</th><th></th></tr></thead>
+      <tbody id="hbody"></tbody>
+    </table></div>
+  </div>
+
+  <div id="pt-a" style="display:none">
+    <div id="analysis-stats"></div>
+    <div class="fbar">
+      <button class="fb active" onclick="setPd('all',this)">全部</button>
+      <button class="fb" onclick="setPd('ytd',this)">今年</button>
+      <button class="fb" onclick="setPd('1y',this)">近1年</button>
+      <button class="fb" onclick="setPd('6m',this)">近6月</button>
+      <button class="fb" onclick="setPd('3m',this)">近3月</button>
+    </div>
+    <div class="cr">
+      <div class="cw"><div class="ct">按市场分布（成本）</div><canvas id="mkt-c" height="200"></canvas></div>
+      <div class="cw"><div class="ct">按行业分布（成本）</div><canvas id="ind-c" height="200"></canvas></div>
+    </div>
+    <div class="cw"><div class="ct">标的贡献度（成本占比）</div><div class="bl" id="hbars"></div></div>
+    <div class="cw"><div class="ct">月度交易金额（买入 vs 卖出）</div><canvas id="mon-c" height="150"></canvas></div>
+    <div class="cw"><div class="ct">累计投入走势（按日）</div><canvas id="day-c" height="150"></canvas></div>
+  </div>
+
+  <div id="pt-r" style="display:none">
+    <div class="c0"><table class="tbl">
+      <thead><tr><th>日期</th><th>方向</th><th>代码 / 名称</th><th>市场</th><th>行业</th><th>归属组合</th><th class="tr">数量</th><th class="tr">价格</th><th class="tr">金额</th><th>货币</th><th>备注</th><th></th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div id="page-ideas" class="page">
+  <div class="ph"><h1 class="pt">投资想法</h1><span class="ps" id="ideas-sub">0 条</span><div class="ha"><button class="btn bg bs" onclick="newIdea()">＋ 新增</button></div></div>
+  <div class="fbar">
+    <button class="fb active" onclick="fIdea('all',this)">全部</button>
+    <button class="fb" onclick="fIdea('观察中',this)">🔍 观察中</button>
+    <button class="fb" onclick="fIdea('深入研究',this)">📋 深入研究</button>
+    <button class="fb" onclick="fIdea('已买入',this)">✅ 已买入</button>
+    <button class="fb" onclick="fIdea('暂时搁置',this)">⏸ 暂时搁置</button>
+    <button class="fb" onclick="fIdea('已否定',this)">❌ 已否定</button>
+  </div>
+  <div class="ig" id="igrid"></div>
+</div>
+
+<!-- GURU PAGE -->
+<div id="page-gurus" class="page">
+  <div class="ph">
+    <h1 class="pt">投资 Guru</h1>
+    <span class="ps" id="guru-sub">0 位</span>
+    <div class="ha"><button class="btn bg bs" onclick="openGuruModal()">＋ 新增 Guru</button></div>
+  </div>
+  <div id="guru-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px"></div>
+</div>
+
+<!-- GURU DETAIL PAGE -->
+<div id="page-guru-detail" class="page">
+  <div class="ph">
+    <button class="btn bg bs" onclick="showPage('gurus',document.querySelector('.nav-item[onclick*=gurus]'))">← 返回</button>
+    <h1 class="pt" id="gd-name">Guru 详情</h1>
+    <div class="ha">
+      <button class="btn bg bs" onclick="editCurrentGuru()">编辑</button>
+      <button class="btn bd2 bs" onclick="deleteCurrentGuru()">删除</button>
+    </div>
+  </div>
+
+  <!-- GURU SUMMARY -->
+  <div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:24px;margin-bottom:20px">
+    <div style="display:flex;gap:20px;align-items:flex-start">
+      <div style="font-size:52px;min-width:60px;text-align:center" id="gd-emoji">👤</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:600;margin-bottom:4px" id="gd-title-line"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="gd-tags"></div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.8" id="gd-bio"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="guruTab('notes',this)">📝 笔记</button>
+    <button class="tab" onclick="guruTab('docs',this)">📁 资料夹</button>
+    <button class="tab" onclick="guruTab('links',this)">🔗 链接</button>
+  </div>
+
+  <!-- NOTES TAB -->
+  <div id="gt-notes">
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em">笔记记录</div>
+      <button class="btn bg bs" onclick="openNoteModal()">＋ 新增笔记</button>
+    </div>
+    <div id="guru-notes-list"></div>
+  </div>
+
+  <!-- DOCS TAB -->
+  <div id="gt-docs" style="display:none">
+    <div style="margin-bottom:16px">
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px dashed var(--bd);border-radius:6px;cursor:pointer;background:var(--s2);font-size:13px">
+        📄 上传 PDF / 文件
+        <input type="file" id="guru-doc-input" accept=".pdf,.doc,.docx,.txt,.epub" multiple style="display:none" onchange="uploadGuruDocs(this)">
+      </label>
+      <span id="guru-doc-status" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-left:10px"></span>
+    </div>
+    <div id="guru-docs-list"></div>
+  </div>
+</div>
+
+<div id="page-travel" class="page">
+  <div class="ph">
+    <h1 class="pt">旅行</h1><span class="ps" id="vsub">0 次</span>
+    <div class="ha"><button class="btn bg bs" onclick="newTrip()">＋ 新增旅行</button></div>
+  </div>
+  <div class="vg" id="vgrid"></div>
+</div>
+
+<!-- TRAVEL DETAIL PAGE -->
+<div id="page-travel-detail" class="page">
+  <div class="ph">
+    <button class="btn bg bs" onclick="showPage('travel',document.querySelector('.nav-item[onclick*=travel]'))">← 返回</button>
+    <h1 class="pt" id="td-title">旅行详情</h1>
+    <div class="ha">
+      <button class="btn bg bs" onclick="openAddCity()">＋ 添加城市</button>
+      <button class="btn bg bs" onclick="openTripPhotos()">📷 照片</button>
+      <button class="btn bg bs" onclick="openTripGuide()">📋 攻略</button>
+    </div>
+  </div>
+
+  <!-- TRIP SUMMARY -->
+  <div id="td-summary" style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:20px;margin-bottom:20px">
+    <div style="display:flex;gap:20px;align-items:center">
+      <div style="font-size:48px" id="td-emoji">🌍</div>
+      <div style="flex:1">
+        <div style="font-size:18px;font-weight:600" id="td-dest">目的地</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-top:4px" id="td-dates">日期</div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" id="td-tags"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn bg bs" onclick="editCurrentTrip()">编辑</button>
+        <button class="btn bd2 bs" onclick="deleteCurrentTrip()">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" style="margin-bottom:20px">
+    <button class="tab active" onclick="tripTab('itinerary',this)">行程安排</button>
+    <button class="tab" onclick="tripTab('photos',this)">照片</button>
+    <button class="tab" onclick="tripTab('guide',this)">攻略</button>
+    <button class="tab" onclick="tripTab('notes',this)">注意事项</button>
+  </div>
+
+  <!-- ITINERARY TAB -->
+  <div id="tt-itinerary">
+    <div id="cities-list"></div>
+  </div>
+
+  <!-- PHOTOS TAB -->
+  <div id="tt-photos" style="display:none">
+    <div style="margin-bottom:16px">
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px dashed var(--bd);border-radius:6px;cursor:pointer;background:var(--s2)">
+        <span>📷 上传照片</span>
+        <input type="file" id="photo-upload" accept="image/*" multiple style="display:none" onchange="uploadPhotos(this)">
+      </label>
+      <span id="photo-upload-status" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-left:10px"></span>
+    </div>
+    <div id="photos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
+  </div>
+
+  <!-- GUIDE TAB -->
+  <div id="tt-guide" style="display:none">
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:24px">
+      <div class="fg" style="margin-bottom:16px"><label>签证信息</label><textarea id="guide-visa" placeholder="签证类型、申请方式、费用等" style="min-height:80px"></textarea></div>
+      <div class="fg" style="margin-bottom:16px"><label>交通安排</label><textarea id="guide-transport" placeholder="航班、火车、当地交通等" style="min-height:80px"></textarea></div>
+      <div class="fg" style="margin-bottom:16px"><label>住宿建议</label><textarea id="guide-accommodation" placeholder="酒店、民宿推荐等" style="min-height:80px"></textarea></div>
+      <div class="fg" style="margin-bottom:16px"><label>餐饮推荐</label><textarea id="guide-food" placeholder="必吃、推荐餐厅等" style="min-height:80px"></textarea></div>
+      <button class="btn bp" onclick="saveGuide()">保存攻略</button>
+    </div>
+  </div>
+
+  <!-- NOTES TAB -->
+  <div id="tt-notes" style="display:none">
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:24px">
+      <div class="fg" style="margin-bottom:16px"><label>注意事项 / 踩坑提醒</label><textarea id="notes-content" placeholder="记录旅途中的注意事项、踩坑经历等" style="min-height:200px"></textarea></div>
+      <button class="btn bp" onclick="saveNotes()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="page-reading" class="page">
+  <div class="ph"><h1 class="pt">阅读</h1><span class="ps" id="bsub">0 本</span><div class="ha">
+      <button class="btn bg bs" onclick="downloadBookTemplate()">⬇ 下载模板</button>
+      <label class="btn bg bs" style="cursor:pointer">
+        ⬆ 批量导入
+        <input type="file" id="book-csv-input" accept=".csv" style="display:none" onchange="importBookCSV(this)">
+      </label>
+      <button class="btn bg bs" onclick="om('bm')">＋ 新增</button>
+    </div></div>
+  <div class="fbar">
+    <button class="fb active" onclick="fBook('all',this)">全部</button>
+    <button class="fb" onclick="fBook('想读',this)">📌 想读</button>
+    <button class="fb" onclick="fBook('在读',this)">📖 在读</button>
+    <button class="fb" onclick="fBook('已读',this)">✅ 已读</button>
+  </div>
+  <div id="blist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px"></div>
+</div>
+
+</main></div>
+
+<!-- PORTFOLIO MODAL -->
+<div class="overlay" id="pm">
+  <div class="modal">
+    <button class="mc" onclick="cm('pm')">✕</button>
+    <div class="mt2" id="pmt">新建组合</div>
+    <div class="fr c2">
+      <div class="fg"><label>组合名称</label><input id="p-name" placeholder="如：核心持仓 / 成长组合"/></div>
+      <div class="fg"><label>标签颜色</label>
+        <select id="p-color">
+          <option value="#2d5a3d">深绿</option>
+          <option value="#4a7fa5">蓝色</option>
+          <option value="#c4713a">橙色</option>
+          <option value="#6b5c8a">紫色</option>
+          <option value="#b03a2e">红色</option>
+          <option value="#d4ac0d">金色</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:16px"><label>描述（选填）</label><input id="p-desc" placeholder="这个组合的投资策略或目标"/></div>
+    <input type="hidden" id="p-eid"/>
+    <div class="fa">
+      <button class="btn bp" onclick="savePortfolio()">保存</button>
+      <button class="btn bg" onclick="cm('pm')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT HOLDINGS MODAL -->
+<div class="overlay" id="import-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('import-modal')">✕</button>
+    <div class="mt2">导入初始持仓</div>
+    <div style="background:var(--s2);border-radius:6px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--t2);line-height:1.8">
+      将现有持仓作为初始组合录入，每行一笔生成一条<b>买入记录</b>。<br>
+      支持字段：<span style="font-family:DM Mono,monospace;font-size:11px">代码, 名称, 市场, 数量, 均摊成本, 货币, 行业, 日期, 组合, 备注</span>
+    </div>
+    <div style="margin-bottom:16px">
+      <button class="btn bg bs" onclick="downloadHoldingsTemplate()">⬇ 下载导入模板</button>
+      <span style="font-family:DM Mono,monospace;font-size:10px;color:var(--t3);margin-left:10px">含示例数据和字段说明</span>
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label>归属组合（选填）</label>
+      <select id="import-pid"><option value="">— 未分配 —</option></select>
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label>直接粘贴持仓数据（每行一笔）</label>
+      <textarea id="import-text" style="min-height:160px;font-family:DM Mono,monospace;font-size:12px" placeholder="AAPL, Apple Inc, 美股, 100, 180.50, USD, 科技, 2024-01-01
+HKG:0700, 腾讯控股, 港股, 500, 320.00, HKD, 科技, 2024-01-01"></textarea>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        或上传 CSV 文件：
+        <input type="file" id="import-csv-file" accept=".csv" style="font-size:12px">
+      </label>
+    </div>
+    <div id="import-preview" style="display:none;margin-bottom:14px"></div>
+    <div class="fa">
+      <button class="btn bp" onclick="importHoldings()">确认导入</button>
+      <button class="btn bg" onclick="cm('import-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDEA MODAL -->
+<div class="overlay" id="im">
+  <div class="modal">
+    <button class="mc" onclick="cm('im')">✕</button>
+    <div class="mt2" id="imt">新增投资想法</div>
+    <div class="fr c2"><div class="fg"><label>公司名称</label><input id="i-name" placeholder="腾讯控股"/></div><div class="fg"><label>股票代码</label><input id="i-code" placeholder="HKG:0700"/></div></div>
+    <div class="fr c4">
+      <div class="fg"><label>行业</label><select id="i-ind"><option>科技</option><option>金融</option><option>消费</option><option>医疗</option><option>能源</option><option>工业</option><option>ETF/指数</option><option>其他</option></select></div>
+      <div class="fg"><label>市场</label><select id="i-mkt"><option>港股</option><option>美股</option><option>A股</option><option>ETF</option></select></div>
+      <div class="fg"><label>评级</label><select id="i-rate"><option value="⭐⭐⭐">⭐⭐⭐ 强烈</option><option value="⭐⭐">⭐⭐ 关注</option><option value="⭐">⭐ 观察</option></select></div>
+      <div class="fg"><label>状态</label><select id="i-stat"><option>观察中</option><option>深入研究</option><option>已买入</option><option>暂时搁置</option><option>已否定</option></select></div>
+    </div>
+    <div class="fr c2"><div class="fg"><label>目标价</label><input id="i-tgt" type="number" step="0.01" placeholder="0.00"/></div><div class="fg"><label>货币</label><select id="i-cu"><option value="HKD">HKD</option><option value="USD">USD</option><option value="CNY">CNY</option></select></div></div>
+    <div class="fg" style="margin-bottom:16px"><label>投资逻辑 / 备注</label><textarea id="i-note" placeholder="投资逻辑、风险点、关注指标等"></textarea></div>
+    <input type="hidden" id="i-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveIdea()">保存</button><button class="btn bg" onclick="cm('im')">取消</button></div>
+  </div>
+  <!-- LINKS TAB -->
+  <div id="gt-links" style="display:none">
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.08em">相关链接</div>
+      <button class="btn bg bs" onclick="openLinkModal()">＋ 添加链接</button>
+    </div>
+    <div id="guru-links-list"></div>
+  </div>
+
+</div>
+
+<!-- GURU MODAL -->
+<div class="overlay" id="guru-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('guru-modal')">✕</button>
+    <div class="mt2" id="guru-modal-title">新增投资 Guru</div>
+    <div class="fr c2">
+      <div class="fg"><label>姓名</label><input id="g-name" placeholder="Warren Buffett"/></div>
+      <div class="fg"><label>头像 Emoji</label><input id="g-emoji" placeholder="👤"/></div>
+    </div>
+    <div class="fr c2">
+      <div class="fg"><label>头衔 / 身份</label><input id="g-title" placeholder="伯克希尔哈撒韦 CEO"/></div>
+      <div class="fg"><label>投资风格</label><input id="g-style" placeholder="价值投资 / 成长投资 / 宏观对冲"/></div>
+    </div>
+    <div class="fg" style="margin-bottom:14px"><label>标签（逗号分隔）</label><input id="g-tags" placeholder="价值投资, 长期持有, 巴菲特"/></div>
+    <div class="fg" style="margin-bottom:16px"><label>简介</label><textarea id="g-bio" style="min-height:120px" placeholder="投资理念、经历、代表作等"></textarea></div>
+    <input type="hidden" id="g-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveGuru()">保存</button><button class="btn bg" onclick="cm('guru-modal')">取消</button></div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="overlay" id="note-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('note-modal')">✕</button>
+    <div class="mt2" id="note-modal-title">新增笔记</div>
+    <div class="fg" style="margin-bottom:14px"><label>来源 / 标题（选填）</label><input id="n-source" placeholder="摘自《穷查理宝典》第3章 / 个人思考"/></div>
+    <div class="fg" style="margin-bottom:16px"><label>笔记内容</label><textarea id="n-content" style="min-height:160px" placeholder="记录关键观点、金句、个人感悟等"></textarea></div>
+    <input type="hidden" id="n-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveNote()">保存</button><button class="btn bg" onclick="cm('note-modal')">取消</button></div>
+  </div>
+</div>
+
+<!-- LINK MODAL -->
+<div class="overlay" id="link-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('link-modal')">✕</button>
+    <div class="mt2" id="link-modal-title">添加链接</div>
+    <div class="fr c2">
+      <div class="fg"><label>链接名称</label><input id="l-name" placeholder="官方网站 / 年报 / 访谈视频"/></div>
+      <div class="fg"><label>类型</label>
+        <select id="l-type">
+          <option>官方网站</option>
+          <option>年报 / 信函</option>
+          <option>访谈 / 演讲</option>
+          <option>文章 / 研报</option>
+          <option>视频</option>
+          <option>其他</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:14px"><label>URL</label><input id="l-url" placeholder="https://"/></div>
+    <div class="fg" style="margin-bottom:16px"><label>备注（选填）</label><input id="l-note" placeholder="简短描述"/></div>
+    <input type="hidden" id="l-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveLink()">保存</button><button class="btn bg" onclick="cm('link-modal')">取消</button></div>
+  </div>
+</div>
+
+<!-- TRAVEL MODAL -->
+<div class="overlay" id="vm">
+  <div class="modal">
+    <button class="mc" onclick="cm('vm')">&#x2715;</button>
+    <div class="mt2" id="vmt">新增旅行</div>
+    <div class="fr c2">
+      <div class="fg"><label>旅行主题 / 名称</label><input id="v-dest" placeholder="日本关西之旅"/></div>
+      <div class="fg"><label>封面 Emoji</label><input id="v-em" placeholder="🗼"/></div>
+    </div>
+    <div class="fr c3">
+      <div class="fg"><label>出发日期</label><input id="v-s" type="date"/></div>
+      <div class="fg"><label>返回日期</label><input id="v-e" type="date"/></div>
+      <div class="fg"><label>同行人</label><input id="v-co" placeholder="独行 / 家人 / 朋友"/></div>
+    </div>
+    <div class="fr c2">
+      <div class="fg"><label>出发城市</label><input id="v-from" placeholder="香港"/></div>
+      <div class="fg"><label>标签</label><input id="v-tg" placeholder="自驾 / 亲子 / 徒步"/></div>
+    </div>
+    <div class="fg" style="margin-bottom:16px"><label>旅行简介</label><textarea id="v-note" style="min-height:80px" placeholder="这次旅行的主题或简介"></textarea></div>
+    <input type="hidden" id="v-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveTravel()">保存</button><button class="btn bg" onclick="cm('vm')">取消</button></div>
+  </div>
+</div>
+
+<!-- ADD CITY MODAL -->
+<div class="overlay" id="city-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('city-modal')">&#x2715;</button>
+    <div class="mt2" id="city-mt">添加城市</div>
+    <div class="fr c2">
+      <div class="fg"><label>城市名称</label><input id="city-name" placeholder="大阪"/></div>
+      <div class="fg"><label>国家 / 地区</label><input id="city-country" placeholder="日本"/></div>
+    </div>
+    <div class="fr c2">
+      <div class="fg"><label>抵达日期</label><input id="city-arrive" type="date"/></div>
+      <div class="fg"><label>离开日期</label><input id="city-depart" type="date"/></div>
+    </div>
+    <input type="hidden" id="city-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveCity()">保存</button><button class="btn bg" onclick="cm('city-modal')">取消</button></div>
+  </div>
+</div>
+
+<!-- ITINERARY MODAL -->
+<div class="overlay" id="itin-modal">
+  <div class="modal">
+    <button class="mc" onclick="cm('itin-modal')">&#x2715;</button>
+    <div class="mt2">添加行程</div>
+    <div class="fr c2">
+      <div class="fg"><label>日期</label><input id="itin-date" type="date"/></div>
+      <div class="fg"><label>标题</label><input id="itin-title" placeholder="参观金阁寺"/></div>
+    </div>
+    <div class="fg" style="margin-bottom:16px"><label>行程详情</label><textarea id="itin-content" style="min-height:120px" placeholder="详细记录当天行程、感受、推荐等"></textarea></div>
+    <input type="hidden" id="itin-city-id"/>
+    <input type="hidden" id="itin-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveItinerary()">保存</button><button class="btn bg" onclick="cm('itin-modal')">取消</button></div>
+  </div>
+</div>
+
+<!-- BOOK MODAL -->
+<div class="overlay" id="bm">
+  <div class="modal">
+    <button class="mc" onclick="cm('bm')">✕</button>
+    <div class="mt2" id="bmt">新增书目</div>
+
+    <!-- AI SCAN ZONE -->
+    <div id="ai-scan-zone" style="margin-bottom:20px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.06em;margin-bottom:8px">📷 上传书封，AI 自动识别</div>
+      <label id="upload-label" style="display:flex;align-items:center;justify-content:center;gap:10px;border:2px dashed var(--border);border-radius:8px;padding:18px;cursor:pointer;transition:all .2s;background:var(--s2)">
+        <span style="font-size:24px">📚</span>
+        <div>
+          <div style="font-size:13px;color:var(--t2)">点击上传书封图片</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">支持 JPG / PNG，AI 自动填写书名、作者等信息</div>
+        </div>
+        <input type="file" id="book-img-input" accept="image/*" style="display:none" onchange="scanBookImage(this)">
+      </label>
+      <div id="scan-preview" style="display:none;margin-top:10px;display:none">
+        <img id="scan-img" style="width:80px;height:110px;object-fit:cover;border-radius:4px;border:1px solid var(--border)">
+        <span id="scan-status" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-left:12px;vertical-align:middle"></span>
+      </div>
+    </div>
+
+    <div class="fr c2"><div class="fg"><label>书名</label><input id="b-title" placeholder="书名"/></div><div class="fg"><label>作者</label><input id="b-auth" placeholder="作者"/></div></div>
+    <div class="fr c2"><div class="fg"><label>出版社</label><input id="b-pub" placeholder="出版社"/></div><div class="fg"><label>出版年份</label><input id="b-year" placeholder="2024"/></div></div>
+    <div class="fr c3">
+      <div class="fg"><label>分类</label><select id="b-cat"><option>投资 / 金融</option><option>商业 / 管理</option><option>历史 / 传记</option><option>科学 / 技术</option><option>文学 / 小说</option><option>哲学 / 思想</option><option>其他</option></select></div>
+      <div class="fg"><label>状态</label><select id="b-stat"><option>想读</option><option>在读</option><option>已读</option></select></div>
+      <div class="fg"><label>评分</label><select id="b-rate"><option value="">— 未评分 —</option><option value="⭐⭐⭐⭐⭐">⭐⭐⭐⭐⭐</option><option value="⭐⭐⭐⭐">⭐⭐⭐⭐</option><option value="⭐⭐⭐">⭐⭐⭐</option><option value="⭐⭐">⭐⭐</option><option value="⭐">⭐</option></select></div>
+    </div>
+    <div class="fr c2"><div class="fg"><label>完读日期</label><input id="b-date" type="date"/></div><div class="fg"><label>语言</label><select id="b-lang"><option>中文</option><option>英文</option><option>其他</option></select></div></div>
+    <div class="fg" style="margin-bottom:16px"><label>读书笔记 / 感悟</label><textarea id="b-note" style="min-height:100px" placeholder="关键观点、金句、个人感悟等"></textarea></div>
+    <input type="hidden" id="b-eid"/>
+    <div class="fa"><button class="btn bp" onclick="saveBook()">保存</button><button class="btn bg" onclick="cm('bm')">取消</button></div>
+  </div>
+</div>
+
+<script>
+// ── SUPABASE ──
+const SUPABASE_URL='https://qcuwyzkdjyqghwdhplvz.supabase.co';
+const SUPABASE_KEY='sb_publishable_4Mhnq7iaWoIaZMt-tkZbuw_DWbq-PX6';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var currentUser=null;
+
+var S={portfolios:[],trades:[],ideas:[],travel:[],books:[],gurus:[],guruNotes:[],guruDocs:[],guruLinks:[]};var activePortfolioId=null;
+var currentGuruId=null;
+var currentGuru=null;
+var CHS={};
+var period='all',iF='all',bF='all';
+var COLORS=['#2d5a3d','#4a7fa5','#c4713a','#d4ac0d','#6b5c8a','#3a7a7a','#a05c3a','#7a3a5c','#5c7a3a','#3a5c7a'];
+
+// ── AUTH ──
+async function initAuth(){
+  // Handle hash-based token from OAuth redirect
+  if(window.location.hash&&window.location.hash.includes('access_token')){
+    var r=await sb.auth.getSession();
+    if(r.data&&r.data.session){
+      window.history.replaceState(null,'',window.location.pathname);
+      await onLogin(r.data.session.user);
+      return;
+    }
+  }
+  var r=await sb.auth.getSession();
+  if(r.data&&r.data.session){await onLogin(r.data.session.user);}
+  else{showLogin();}
+  sb.auth.onAuthStateChange(async function(ev,sess){
+    if(ev==='SIGNED_IN'&&sess){await onLogin(sess.user);}
+    else if(ev==='SIGNED_OUT'){currentUser=null;showLogin();}
+  });
+}
+async function googleLogin(){
+  await sb.auth.signInWithOAuth({
+    provider:'google',
+    options:{
+      redirectTo:'https://rrx58.github.io',
+      queryParams:{access_type:'offline',prompt:'consent'}
+    }
+  });
+}
+async function signOut(){await sb.auth.signOut();}
+async function onLogin(user){
+  currentUser=user;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-wrap').style.display='flex';
+  document.getElementById('user-email').textContent=user.email;
+  await loadAll();
+  document.getElementById('tdt').value=td();
+  renderAll();
+}
+function showLogin(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app-wrap').style.display='none';
+}
+async function loadAll(){
+  if(!currentUser)return;
+  var uid=currentUser.id;
+  var results=await Promise.all([
+    sb.from('portfolios').select('*').eq('user_id',uid).order('created_at'),
+    sb.from('trades').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('ideas').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('travel').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('books').select('*').eq('user_id',uid).order('created_at',{ascending:false})
+  ]);
+  S.portfolios=(results[0].data||[]).map(function(x){return{id:x.id,name:x.name,desc:x.description,color:x.color};});
+  S.trades=(results[1].data||[]).map(function(x){return{id:x.id,portfolioId:x.portfolio_id,direction:x.direction,code:x.code,name:x.name,market:x.market,qty:Number(x.qty),price:Number(x.price),currency:x.currency,date:x.trade_date,industry:x.industry,note:x.note||''};});
+  S.ideas=(results[2].data||[]).map(function(x){return{id:x.id,name:x.name,code:x.code||'',industry:x.industry,market:x.market,rating:x.rating,status:x.status,target:x.target,currency:x.currency,note:x.note||'',date:x.idea_date};});
+  S.travel=(results[3].data||[]).map(function(x){return{id:x.id,dest:x.dest,country:x.country||'',start:x.start_date||'',end:x.end_date||'',companions:x.companions||'',emoji:x.emoji||'🌍',tag:x.tag||'',note:x.note||''};});
+  S.books=(results[4].data||[]).map(function(x){return{id:x.id,title:x.title,author:x.author||'',publisher:x.publisher||'',year:x.year||'',category:x.category,status:x.status,rating:x.rating||'',date:x.finish_date||'',lang:x.language||'中文',note:x.note||''};});
+}
+function load(){document.getElementById('tdt').value=td();}
+function save(){}
+function td(){return new Date().toISOString().split('T')[0];}
+function fmtFull(n){
+  if(!n&&n!==0)return'—';
+  return n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+}
+function fmt(n){if(n===null||n===undefined||isNaN(n))return'—';var a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(2)+'M';if(a>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(2);}
+
+function showPage(p,el){
+  document.querySelectorAll('.page').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(x){x.classList.remove('active');});
+  document.getElementById('page-'+p).classList.add('active');
+  el.classList.add('active');
+  renderAll();
+}
+
+function ptab(t,btn){
+  document.querySelectorAll('.tabs .tab').forEach(function(x){x.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('pt-h').style.display=t==='holdings'?'block':'none';
+  document.getElementById('pt-a').style.display=t==='analysis'?'block':'none';
+  document.getElementById('pt-r').style.display=t==='history'?'block':'none';
+  if(t==='analysis')setTimeout(function(){renderAnalysis();},50);
+}
+
+function tfp(id){
+  document.getElementById(id).classList.toggle('open');
+  if(id==='trade-form'){
+    var row=document.getElementById('trade-scan-row');
+    if(row)row.style.display='none';
+    var inp=document.getElementById('trade-img-input');
+    if(inp)inp.value='';
+  }
+}
+
+async function scanTradeImg(input){
+  var file=input.files[0]; if(!file)return;
+  var row=document.getElementById('trade-scan-row');
+  var thumb=document.getElementById('trade-scan-thumb');
+  var msg=document.getElementById('trade-scan-msg');
+  row.style.display='flex';
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    thumb.src=e.target.result;
+    msg.textContent='⏳ AI 识别中...'; msg.style.color='var(--a2)';
+    try{
+      var resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',max_tokens:600,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:e.target.result.split(',')[1]}},
+            {type:'text',text:'这是一张股票交易截图，请识别交易信息。只返回JSON，不要其他文字。direction只能是buy或sell，market只能是美股/港股/ETF，currency只能是USD或HKD，industry从科技/金融/消费/医疗/能源/工业/ETF指数/其他中选一个，date格式YYYY-MM-DD。格式：{"direction":"buy","code":"","name":"","market":"","qty":"","price":"","currency":"","date":"","industry":"","note":""}'}
+          ]}]
+        })
+      });
+      var data=await resp.json();
+      var txt=data.content&&data.content[0]?data.content[0].text:'';
+      var info=JSON.parse(txt.replace(/```json|```/g,'').trim());
+      var setSelect=function(id,val){var s=document.getElementById(id);for(var i=0;i<s.options.length;i++){if(s.options[i].value===val){s.selectedIndex=i;break;}}};
+      if(info.direction)setSelect('td',info.direction);
+      if(info.code)document.getElementById('tc').value=info.code;
+      if(info.name)document.getElementById('tn').value=info.name;
+      if(info.market)setSelect('tm',info.market);
+      if(info.qty)document.getElementById('tq').value=info.qty;
+      if(info.price)document.getElementById('tp').value=info.price;
+      if(info.currency)setSelect('tcu',info.currency);
+      if(info.date)document.getElementById('tdt').value=info.date;
+      if(info.industry)setSelect('tind',info.industry);
+      if(info.note)document.getElementById('tnote').value=info.note;
+      msg.textContent='✅ 识别完成，请核对后保存'; msg.style.color='var(--grn)';
+    }catch(err){
+      msg.textContent='❌ 识别失败，请手动填写'; msg.style.color='var(--red)';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveTrade(){
+  var t={id:Date.now(),portfolioId:document.getElementById('t-pid').value||null,direction:document.getElementById('td').value,code:document.getElementById('tc').value.trim(),name:document.getElementById('tn').value.trim(),market:document.getElementById('tm').value,qty:parseFloat(document.getElementById('tq').value)||0,price:parseFloat(document.getElementById('tp').value)||0,currency:document.getElementById('tcu').value,date:document.getElementById('tdt').value,industry:document.getElementById('tind').value,note:document.getElementById('tnote').value.trim()};
+  if(!t.code||!t.name||!t.qty||!t.price){alert('请填写代码、名称、数量和价格');return;}
+  var row={user_id:currentUser.id,portfolio_id:t.portfolioId||null,direction:t.direction,code:t.code,name:t.name,market:t.market,qty:t.qty,price:t.price,currency:t.currency,trade_date:t.date,industry:t.industry,note:t.note};
+  sb.from('trades').insert(row).select().then(function(r){
+    if(r.error){alert('保存失败：'+r.error.message);return;}
+    t.id=r.data[0].id;
+    S.trades.unshift(t);renderPortfolio();
+    ['tc','tn','tq','tp','tnote'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('tdt').value=td();
+    tfp('trade-form');
+  });
+}
+
+function delTrade(id){if(!confirm('确认删除？'))return;S.trades=S.trades.filter(function(t){return t.id!==id;});save();renderPortfolio();}
+
+function compHoldings(trades){
+  var h={};
+  trades.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(t){
+    if(!h[t.code])h[t.code]={code:t.code,name:t.name,market:t.market,currency:t.currency,industry:t.industry||'其他',qty:0,totalCost:0};
+    var hh=h[t.code];
+    if(t.direction==='buy'){hh.totalCost+=t.qty*t.price;hh.qty+=t.qty;}
+    else{var avg=hh.qty>0?hh.totalCost/hh.qty:0;hh.totalCost-=avg*Math.min(t.qty,hh.qty);hh.qty=Math.max(0,hh.qty-t.qty);}
+  });
+  return Object.values(h).filter(function(hh){return hh.qty>0.0001;});
+}
+
+// ── PORTFOLIO MANAGEMENT ──
+function renderPortfolioBar(){
+  var bar=document.getElementById('portfolio-bar');
+  var sel=document.getElementById('t-pid');
+  var btns='<button class="fb'+(activePortfolioId===null?' active':'')+'" onclick="selectPortfolio(null,this)">全部</button>';
+  S.portfolios.forEach(function(p){
+    var isActive=String(activePortfolioId)===String(p.id);
+    btns+='<button class="fb'+(isActive?' active':'')+'" onclick="selectPortfolio('+p.id+',this)" style="border-color:'+p.color+';'+(isActive?'background:'+p.color+';color:#fff':'color:'+p.color)+'">'+p.name+' <span onclick="event.stopPropagation();editPortfolio('+p.id+')" style="opacity:.6;font-size:10px;margin-left:4px">✎</span><span onclick="event.stopPropagation();deletePortfolio('+p.id+')" style="opacity:.5;font-size:10px;margin-left:2px">✕</span></button>';
+  });
+  if(bar)bar.innerHTML=btns;
+  if(sel){
+    sel.innerHTML='<option value="">— 未分配 —</option>';
+    S.portfolios.forEach(function(p){sel.innerHTML+='<option value="'+p.id+'">'+p.name+'</option>';});
+    if(activePortfolioId)sel.value=activePortfolioId;
+  }
+}
+
+function selectPortfolio(id,btn){
+  activePortfolioId=id;
+  renderPortfolioBar();
+  renderPortfolio();
+  if(document.getElementById('pt-a').style.display!=='none')renderAnalysis();
+}
+
+function openPortfolioModal(){
+  document.getElementById('pmt').textContent='新建组合';
+  document.getElementById('p-eid').value='';
+  document.getElementById('p-name').value='';
+  document.getElementById('p-desc').value='';
+  document.getElementById('p-color').value='#2d5a3d';
+  om('pm');
+}
+
+function editPortfolio(id){
+  var p=S.portfolios.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('pmt').textContent='编辑组合';
+  document.getElementById('p-eid').value=id;
+  document.getElementById('p-name').value=p.name;
+  document.getElementById('p-desc').value=p.desc||'';
+  document.getElementById('p-color').value=p.color;
+  om('pm');
+}
+
+function savePortfolio(){
+  var eid=document.getElementById('p-eid').value;
+  var name=document.getElementById('p-name').value.trim();
+  if(!name){alert('请填写组合名称');return;}
+  var p={id:eid?parseInt(eid):Date.now(),name:name,desc:document.getElementById('p-desc').value.trim(),color:document.getElementById('p-color').value};
+  if(eid){
+    sb.from('portfolios').update({name:p.name,description:p.desc,color:p.color}).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      var idx=S.portfolios.findIndex(function(x){return x.id===parseInt(eid);});
+      if(idx>-1)S.portfolios[idx]=p;
+      renderPortfolioBar();renderPortfolio();cm('pm');
+    });
+  }else{
+    sb.from('portfolios').insert({user_id:currentUser.id,name:p.name,description:p.desc,color:p.color}).select().then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      p.id=r.data[0].id;S.portfolios.push(p);renderPortfolioBar();renderPortfolio();cm('pm');
+    });
+  }
+}
+
+function getFilteredTrades(){
+  if(activePortfolioId===null)return S.trades;
+  return S.trades.filter(function(t){return String(t.portfolioId)===String(activePortfolioId);});
+}
+function getPortfolioName(id){
+  if(!id)return '未分配';
+  var p=S.portfolios.find(function(x){return String(x.id)===String(id);});
+  return p?p.name:'未分配';
+}
+function getPortfolioColor(id){
+  if(!id)return 'var(--t3)';
+  var p=S.portfolios.find(function(x){return String(x.id)===String(id);});
+  return p?p.color:'var(--t3)';
+}
+function renderPortfolio(){
+  var ft=getFilteredTrades();
+  var holdings=compHoldings(ft);
+  var tc=holdings.reduce(function(s,h){return s+h.totalCost;},0);
+  document.getElementById('s-cost').textContent=fmt(tc);
+  document.getElementById('s-count').textContent=holdings.length;
+  document.getElementById('s-trades').textContent=ft.length;
+  var pname=activePortfolioId?getPortfolioName(activePortfolioId)+' · ':'';
+  document.getElementById('port-sub').textContent=pname+holdings.length+' 笔持仓';
+  var last=ft[0];
+  document.getElementById('s-last').textContent=last?last.date+' '+last.name:'—';
+  var hb=document.getElementById('hbody');
+  if(!holdings.length){hb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📊</div><div class="et">暂无持仓，点击「录入交易」开始</div></div></td></tr>';}
+  else hb.innerHTML=holdings.map(function(h){
+    var avg=h.qty>0?h.totalCost/h.qty:0,pct=tc>0?h.totalCost/tc*100:0;
+    return '<tr><td><div style="font-weight:600">'+h.name+'</div><div class="mono" style="font-size:10px;color:var(--t3)">'+h.code+'</div></td><td><span class="tag">'+h.market+'</span></td><td><span class="tag">'+h.industry+'</span></td><td class="tr mono">'+h.qty.toLocaleString()+'</td><td class="tr mono">'+avg.toFixed(2)+' <span style="font-size:9px;color:var(--t3)">'+h.currency+'</span></td><td class="tr mono">'+fmt(h.totalCost)+' <span style="font-size:9px;color:var(--t3)">'+h.currency+'</span></td><td style="min-width:90px"><div style="font-size:11px;color:var(--t2)">'+pct.toFixed(1)+'%</div><div class="pb"><div class="pbf" style="width:'+pct+'%"></div></div></td><td></td></tr>';
+  }).join('');
+  var tb=document.getElementById('tbody');
+  if(!ft.length){tb.innerHTML='<tr><td colspan="11"><div class="empty" style="padding:28px"><div class="et">暂无交易记录</div></div></td></tr>';}
+  else tb.innerHTML=S.trades.map(function(t){
+    return '<tr><td class="mono" style="font-size:11px">'+t.date+'</td><td><span class="tag '+(t.direction==='buy'?'tg':'trt')+'">'+(t.direction==='buy'?'买入':'卖出')+'</span></td><td><div style="font-weight:600">'+t.name+'</div><div class="mono" style="font-size:10px;color:var(--t3)">'+t.code+'</div></td><td><span class="tag">'+t.market+'</span></td><td><span class="tag">'+(t.industry||'—')+'</span></td><td class="tr mono">'+t.qty.toLocaleString()+'</td><td class="tr mono">'+t.price.toFixed(2)+'</td><td class="tr mono">'+fmt(t.qty*t.price)+'</td><td class="mono" style="font-size:10px">'+t.currency+'</td><td style="color:var(--t3);font-size:11px">'+(t.note||'—')+'</td><td><button class="btn bd2 bs" onclick="delTrade('+t.id+')">删</button></td></tr>';
+  }).join('');
+}
+
+function setPd(p,btn){period=p;document.querySelectorAll('#pt-a .fb').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderAnalysis();}
+
+function filtPd(trades){
+  if(period==='all')return trades;
+  var now=new Date(),c;
+  if(period==='ytd')c=new Date(now.getFullYear(),0,1);
+  else if(period==='1y'){c=new Date(now);c.setFullYear(c.getFullYear()-1);}
+  else if(period==='6m'){c=new Date(now);c.setMonth(c.getMonth()-6);}
+  else if(period==='3m'){c=new Date(now);c.setMonth(c.getMonth()-3);}
+  return trades.filter(function(t){return new Date(t.date)>=c;});
+}
+
+function dChart(id){if(CHS[id]){CHS[id].destroy();delete CHS[id];}}
+
+function renderAnalysis(){
+  var trades=filtPd(getFilteredTrades());
+  var holdings=compHoldings(trades);
+  var tc=holdings.reduce(function(s,h){return s+h.totalCost;},0);
+
+  // Update summary stats in analysis
+  var buyTrades=trades.filter(function(t){return t.direction==='buy';});
+  var sellTrades=trades.filter(function(t){return t.direction==='sell';});
+  var totalBuy=buyTrades.reduce(function(s,t){return s+t.qty*t.price;},0);
+  var totalSell=sellTrades.reduce(function(s,t){return s+t.qty*t.price;},0);
+  var statsEl=document.getElementById('analysis-stats');
+  if(statsEl){
+    statsEl.innerHTML=
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">'+
+      '<div class="sc"><div class="sl">持仓标的</div><div class="sv">'+holdings.length+'</div></div>'+
+      '<div class="sc"><div class="sl">总持仓成本</div><div class="sv" style="font-size:15px">'+fmtFull(tc)+'</div></div>'+
+      '<div class="sc"><div class="sl">累计买入</div><div class="sv" style="font-size:15px">'+fmtFull(totalBuy)+'</div></div>'+
+      '<div class="sc"><div class="sl">累计卖出</div><div class="sv" style="font-size:15px">'+fmtFull(totalSell)+'</div></div>'+
+      '</div>';
+  }
+  dChart('mkt');
+  var mm={};holdings.forEach(function(h){mm[h.market]=(mm[h.market]||0)+h.totalCost;});
+  var ml=Object.keys(mm);
+  if(ml.length)CHS['mkt']=new Chart(document.getElementById('mkt-c'),{type:'doughnut',data:{labels:ml,datasets:[{data:ml.map(function(k){return mm[k];}),backgroundColor:COLORS,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10,boxWidth:12}}}}});
+  dChart('ind');
+  var im={};holdings.forEach(function(h){var k=h.industry||'其他';im[k]=(im[k]||0)+h.totalCost;});
+  var il=Object.keys(im);
+  if(il.length)CHS['ind']=new Chart(document.getElementById('ind-c'),{type:'doughnut',data:{labels:il,datasets:[{data:il.map(function(k){return im[k];}),backgroundColor:COLORS,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10,boxWidth:12}}}}});
+  var sorted=holdings.slice().sort(function(a,b){return b.totalCost-a.totalCost;});
+  var bel=document.getElementById('hbars');
+  if(!sorted.length){bel.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">暂无持仓数据</div>';}
+  else bel.innerHTML=sorted.map(function(h,i){var p=tc>0?h.totalCost/tc*100:0;return '<div class="bi"><div class="bll" title="'+h.name+'">'+h.name+'</div><div class="blt"><div class="blf" style="width:'+p+'%;background:'+COLORS[i%COLORS.length]+'"></div></div><div class="blp">'+p.toFixed(1)+'%</div></div>';}).join('');
+  dChart('mon');
+  var months_map={};
+  trades.forEach(function(t){var m=t.date.substr(0,7);if(!months_map[m])months_map[m]={buy:0,sell:0};if(t.direction==='buy')months_map[m].buy+=t.qty*t.price;else months_map[m].sell+=t.qty*t.price;});
+  var mkeys=Object.keys(months_map).sort();
+  if(mkeys.length)CHS['mon']=new Chart(document.getElementById('mon-c'),{type:'bar',data:{labels:mkeys,datasets:[{label:'买入',data:mkeys.map(function(m){return months_map[m].buy;}),backgroundColor:'rgba(45,90,61,0.72)',borderRadius:3},{label:'卖出',data:mkeys.map(function(m){return months_map[m].sell;}),backgroundColor:'rgba(176,58,46,0.65)',borderRadius:3}]},options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},callback:function(v){return fmt(v);}}}}}});
+  dChart('day');
+  var dm={};trades.filter(function(t){return t.direction==='buy';}).forEach(function(t){dm[t.date]=(dm[t.date]||0)+t.qty*t.price;});
+  var dkeys=Object.keys(dm).sort();
+  if(dkeys.length){var cum=0,cv=dkeys.map(function(d){cum+=dm[d];return cum;});CHS['day']=new Chart(document.getElementById('day-c'),{type:'line',data:{labels:dkeys,datasets:[{label:'累计投入',data:cv,borderColor:'#2d5a3d',backgroundColor:'rgba(45,90,61,0.07)',borderWidth:2,pointRadius:2,fill:true,tension:.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:10}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},callback:function(v){return fmt(v);}}}}}});}
+}
+
+var scls={'观察中':'tb','深入研究':'to','已买入':'tg','暂时搁置':'','已否定':'trt'};
+
+function newIdea(){document.getElementById('imt').textContent='新增投资想法';document.getElementById('i-eid').value='';['i-name','i-code','i-tgt','i-note'].forEach(function(x){document.getElementById(x).value='';});om('im');}
+
+function saveIdea(){
+  var eid=document.getElementById('i-eid').value;
+  var idea={id:eid?parseInt(eid):Date.now(),name:document.getElementById('i-name').value.trim(),code:document.getElementById('i-code').value.trim(),industry:document.getElementById('i-ind').value,market:document.getElementById('i-mkt').value,rating:document.getElementById('i-rate').value,status:document.getElementById('i-stat').value,target:document.getElementById('i-tgt').value,currency:document.getElementById('i-cu').value,note:document.getElementById('i-note').value.trim(),date:td()};
+  if(!idea.name){alert('请填写公司名称');return;}
+  var row={user_id:currentUser.id,name:idea.name,code:idea.code,industry:idea.industry,market:idea.market,rating:idea.rating,status:idea.status,target:idea.target||null,currency:idea.currency,note:idea.note,idea_date:idea.date};
+  if(eid){
+    sb.from('ideas').update(row).eq('id',parseInt(eid)).then(function(){
+      var idx=S.ideas.findIndex(function(i){return i.id===parseInt(eid);});if(idx>-1)S.ideas[idx]=idea;renderIdeas();cm('im');
+    });
+  }else{
+    sb.from('ideas').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      idea.id=r.data[0].id;S.ideas.unshift(idea);renderIdeas();cm('im');
+    });
+  }
+}
+
+function editIdea(id){
+  var idea=S.ideas.find(function(i){return i.id===id;});if(!idea)return;
+  document.getElementById('imt').textContent='编辑投资想法';document.getElementById('i-eid').value=id;
+  document.getElementById('i-name').value=idea.name;document.getElementById('i-code').value=idea.code||'';document.getElementById('i-ind').value=idea.industry;document.getElementById('i-mkt').value=idea.market;document.getElementById('i-rate').value=idea.rating;document.getElementById('i-stat').value=idea.status;document.getElementById('i-tgt').value=idea.target||'';document.getElementById('i-cu').value=idea.currency;document.getElementById('i-note').value=idea.note||'';
+  om('im');
+}
+
+function delIdea(id){if(!confirm('确认删除？'))return;sb.from('ideas').delete().eq('id',id).then(function(){S.ideas=S.ideas.filter(function(i){return i.id!==id;});renderIdeas();});}
+function fIdea(f,btn){iF=f;document.querySelectorAll('#page-ideas .fb').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderIdeas();}
+
+function renderIdeas(){
+  var fl=iF==='all'?S.ideas:S.ideas.filter(function(i){return i.status===iF;});
+  document.getElementById('ideas-sub').textContent=S.ideas.length+' 条';
+  var g=document.getElementById('igrid');
+  if(!fl.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">💡</div><div class="et">暂无投资想法</div></div>';return;}
+  g.innerHTML=fl.map(function(i){return '<div class="ic"><div class="ic-top"><div><div class="ic-name">'+i.name+'</div><div class="ic-code">'+(i.code||'—')+'</div></div><div>'+i.rating+'</div></div><div class="ic-meta"><span class="tag '+(scls[i.status]||'')+'">'+i.status+'</span><span class="tag">'+i.industry+'</span><span class="tag tb">'+i.market+'</span></div>'+(i.target?'<div class="mono" style="font-size:11px;color:var(--t2);margin-bottom:8px">目标价 '+i.target+' '+i.currency+'</div>':'')+'<div class="ic-note">'+(i.note||'<span style="color:var(--t3)">暂无备注</span>')+'</div><div class="ic-foot"><span class="ic-date">'+i.date+'</span><div style="display:flex;gap:6px"><button class="btn bg bs" onclick="editIdea('+i.id+')">编辑</button><button class="btn bd2 bs" onclick="delIdea('+i.id+')">删</button></div></div></div>';}).join('');
+}
+
+var currentTripId = null;
+var currentTrip = null;
+var tripCities = [];
+var tripItineraries = [];
+var tripPhotos = [];
+
+function newTrip(){
+  document.getElementById('vmt').textContent = '新增旅行';
+  document.getElementById('v-eid').value = '';
+  ['v-dest','v-em','v-co','v-from','v-tg','v-note'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('v-s').value = '';
+  document.getElementById('v-e').value = '';
+  om('vm');
+}
+
+function saveTravel(){
+  var eid = document.getElementById('v-eid').value;
+  var v = {
+    id: eid ? parseInt(eid) : Date.now(),
+    dest: document.getElementById('v-dest').value.trim(),
+    country: document.getElementById('v-from').value.trim(),
+    start: document.getElementById('v-s').value,
+    end: document.getElementById('v-e').value,
+    companions: document.getElementById('v-co').value.trim(),
+    emoji: document.getElementById('v-em').value.trim() || '🌍',
+    tag: document.getElementById('v-tg').value.trim(),
+    note: document.getElementById('v-note').value.trim()
+  };
+  if(!v.dest){alert('请填写旅行名称');return;}
+  var row = {user_id:currentUser.id,dest:v.dest,country:v.country,start_date:v.start||null,end_date:v.end||null,companions:v.companions,emoji:v.emoji,tag:v.tag,note:v.note};
+  if(eid){
+    sb.from('travel').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败');return;}
+      var idx2=S.travel.findIndex(function(t){return t.id===parseInt(eid);});
+      if(idx2>-1)S.travel[idx2]=v;
+      renderTravel();cm('vm');
+      if(currentTripId===parseInt(eid)){renderTripDetail();}
+    });
+  }else{
+    sb.from('travel').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      v.id=r.data[0].id;S.travel.unshift(v);renderTravel();cm('vm');
+    });
+  }
+}
+
+function openTrip(id){
+  currentTripId = id;
+  currentTrip = S.travel.find(function(t){return t.id===id;});
+  if(!currentTrip)return;
+  // Show detail page
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-travel-detail').classList.add('active');
+  renderTripDetail();
+}
+
+async function renderTripDetail(){
+  if(!currentTrip)return;
+  document.getElementById('td-title').textContent = currentTrip.dest;
+  document.getElementById('td-emoji').textContent = currentTrip.emoji||'🌍';
+  document.getElementById('td-dest').textContent = currentTrip.dest + (currentTrip.country?' · '+currentTrip.country:'');
+  var dateStr = (currentTrip.start||'') + (currentTrip.end?' → '+currentTrip.end:'');
+  document.getElementById('td-dates').textContent = dateStr;
+  var tagsEl = document.getElementById('td-tags');
+  tagsEl.innerHTML = '';
+  if(currentTrip.companions)tagsEl.innerHTML+='<span class="tag">'+currentTrip.companions+'</span>';
+  if(currentTrip.tag)tagsEl.innerHTML+='<span class="tag to">'+currentTrip.tag+'</span>';
+
+  // Load cities
+  var r = await sb.from('travel_cities').select('*').eq('travel_id',currentTripId).order('arrive_date');
+  tripCities = r.data||[];
+
+  // Load itineraries
+  var r2 = await sb.from('travel_itinerary').select('*').eq('travel_id',currentTripId).order('itinerary_date');
+  tripItineraries = r2.data||[];
+
+  // Load photos
+  var r3 = await sb.from('travel_photos').select('*').eq('travel_id',currentTripId).order('created_at');
+  tripPhotos = r3.data||[];
+
+  // Load guide/notes from travel note field
+  renderCitiesList();
+  renderPhotosGrid();
+  loadGuideNotes();
+}
+
+function renderCitiesList(){
+  var el = document.getElementById('cities-list');
+  if(!tripCities.length){
+    el.innerHTML = '<div class="empty"><div class="ei">🗺️</div><div class="et">还没有添加城市，点右上角「添加城市」开始规划行程</div></div>';
+    return;
+  }
+  el.innerHTML = tripCities.map(function(city){
+    var cityItins = tripItineraries.filter(function(i){return i.city_id===city.id;});
+    var days = city.arrive_date&&city.depart_date ? Math.ceil((new Date(city.depart_date)-new Date(city.arrive_date))/86400000) : null;
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;margin-bottom:14px;overflow:hidden">' +
+      '<div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--s2)">' +
+        '<div>' +
+          '<span style="font-size:15px;font-weight:600">'+city.city+'</span>' +
+          (city.country?'<span style="color:var(--t3);font-size:12px;margin-left:8px">'+city.country+'</span>':'') +
+          '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--t3);margin-top:2px">' +
+            (city.arrive_date||'') + (city.depart_date?' → '+city.depart_date:'') + (days?' ('+days+'天)':'') +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn bg bs" onclick="addItinerary('+city.id+')">＋ 行程</button>' +
+          '<button class="btn bg bs" onclick="editCity('+city.id+')">编辑</button>' +
+          '<button class="btn bd2 bs" onclick="deleteCity('+city.id+')">删</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="padding:12px 20px">' +
+        (cityItins.length ? cityItins.map(function(itin){
+          return '<div style="padding:10px 0;border-bottom:1px solid var(--s2);display:flex;justify-content:space-between;align-items:flex-start">' +
+            '<div>' +
+              '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--t3)">'+(itin.itinerary_date||'')+'</div>' +
+              '<div style="font-weight:600;margin:2px 0">'+itin.title+'</div>' +
+              (itin.content?'<div style="font-size:12px;color:var(--t2);margin-top:4px">'+itin.content+'</div>':'') +
+            '</div>' +
+            '<div style="display:flex;gap:4px;flex-shrink:0;margin-left:12px">' +
+              '<button class="btn bg bs" onclick="editItinerary('+itin.id+','+city.id+')">编辑</button>' +
+              '<button class="btn bd2 bs" onclick="deleteItinerary('+itin.id+')">删</button>' +
+            '</div>' +
+          '</div>';
+        }).join('') : '<div style="color:var(--t3);font-size:12px;padding:8px 0">暂无行程安排</div>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderPhotosGrid(){
+  var el = document.getElementById('photos-grid');
+  if(!tripPhotos.length){
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="ei">📷</div><div class="et">还没有照片</div></div>';
+    return;
+  }
+  el.innerHTML = tripPhotos.map(function(p){
+    return '<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:6px;border:1px solid var(--bd)">' +
+      '<img src="'+p.url+'" style="width:100%;height:100%;object-fit:cover" loading="lazy">' +
+      (p.caption?'<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:6px 8px">'+p.caption+'</div>':'') +
+      '<button onclick="deletePhoto('+p.id+')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);border:none;color:#fff;border-radius:4px;padding:3px 7px;cursor:pointer;font-size:11px">删</button>' +
+    '</div>';
+  }).join('');
+}
+
+function loadGuideNotes(){
+  // Guide stored as JSON in travel note or separate - use note field split by markers
+  var note = currentTrip.note||'';
+  try {
+    if(note.startsWith('{')) {
+      var obj = JSON.parse(note);
+      document.getElementById('guide-visa').value = obj.visa||'';
+      document.getElementById('guide-transport').value = obj.transport||'';
+      document.getElementById('guide-accommodation').value = obj.accommodation||'';
+      document.getElementById('guide-food').value = obj.food||'';
+      document.getElementById('notes-content').value = obj.notes||'';
+    }
+  } catch(e){}
+}
+
+function saveGuide(){
+  var existing = {};
+  try { if((currentTrip.note||'').startsWith('{')) existing=JSON.parse(currentTrip.note); } catch(e){}
+  existing.visa = document.getElementById('guide-visa').value;
+  existing.transport = document.getElementById('guide-transport').value;
+  existing.accommodation = document.getElementById('guide-accommodation').value;
+  existing.food = document.getElementById('guide-food').value;
+  var newNote = JSON.stringify(existing);
+  sb.from('travel').update({note:newNote}).eq('id',currentTripId).then(function(r){
+    if(r.error){alert('保存失败');return;}
+    currentTrip.note = newNote;
+    var idx2 = S.travel.findIndex(function(t){return t.id===currentTripId;});
+    if(idx2>-1)S.travel[idx2].note = newNote;
+    alert('攻略已保存');
+  });
+}
+
+function saveNotes(){
+  var existing = {};
+  try { if((currentTrip.note||'').startsWith('{')) existing=JSON.parse(currentTrip.note); } catch(e){}
+  existing.notes = document.getElementById('notes-content').value;
+  var newNote = JSON.stringify(existing);
+  sb.from('travel').update({note:newNote}).eq('id',currentTripId).then(function(r){
+    if(r.error){alert('保存失败');return;}
+    currentTrip.note = newNote;
+    alert('注意事项已保存');
+  });
+}
+
+function tripTab(tab,btn){
+  document.querySelectorAll('#page-travel-detail .tabs .tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('tt-itinerary').style.display = tab==='itinerary'?'block':'none';
+  document.getElementById('tt-photos').style.display = tab==='photos'?'block':'none';
+  document.getElementById('tt-guide').style.display = tab==='guide'?'block':'none';
+  document.getElementById('tt-notes').style.display = tab==='notes'?'block':'none';
+}
+
+function openAddCity(){ document.getElementById('city-mt').textContent='添加城市'; document.getElementById('city-eid').value=''; ['city-name','city-country','city-arrive','city-depart'].forEach(function(id){document.getElementById(id).value='';}); om('city-modal'); }
+
+function editCity(id){
+  var city=tripCities.find(function(c){return c.id===id;});if(!city)return;
+  document.getElementById('city-mt').textContent='编辑城市';
+  document.getElementById('city-eid').value=id;
+  document.getElementById('city-name').value=city.city||'';
+  document.getElementById('city-country').value=city.country||'';
+  document.getElementById('city-arrive').value=city.arrive_date||'';
+  document.getElementById('city-depart').value=city.depart_date||'';
+  om('city-modal');
+}
+
+function saveCity(){
+  var eid=document.getElementById('city-eid').value;
+  var row={user_id:currentUser.id,travel_id:currentTripId,city:document.getElementById('city-name').value.trim(),country:document.getElementById('city-country').value.trim(),arrive_date:document.getElementById('city-arrive').value||null,depart_date:document.getElementById('city-depart').value||null};
+  if(!row.city){alert('请填写城市名称');return;}
+  if(eid){
+    sb.from('travel_cities').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败');return;}
+      var idx2=tripCities.findIndex(function(c){return c.id===parseInt(eid);});
+      if(idx2>-1)tripCities[idx2]={...tripCities[idx2],...row};
+      renderCitiesList();cm('city-modal');
+    });
+  }else{
+    sb.from('travel_cities').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      tripCities.push(r.data[0]);renderCitiesList();cm('city-modal');
+    });
+  }
+}
+
+function deleteCity(id){
+  if(!confirm('确认删除此城市及其所有行程？'))return;
+  sb.from('travel_cities').delete().eq('id',id).then(function(){
+    tripCities=tripCities.filter(function(c){return c.id!==id;});
+    tripItineraries=tripItineraries.filter(function(i){return i.city_id!==id;});
+    renderCitiesList();
+  });
+}
+
+function addItinerary(cityId){
+  document.getElementById('itin-eid').value='';
+  document.getElementById('itin-city-id').value=cityId;
+  ['itin-date','itin-title','itin-content'].forEach(function(id){document.getElementById(id).value='';});
+  om('itin-modal');
+}
+
+function editItinerary(id,cityId){
+  var itin=tripItineraries.find(function(i){return i.id===id;});if(!itin)return;
+  document.getElementById('itin-eid').value=id;
+  document.getElementById('itin-city-id').value=cityId;
+  document.getElementById('itin-date').value=itin.itinerary_date||'';
+  document.getElementById('itin-title').value=itin.title||'';
+  document.getElementById('itin-content').value=itin.content||'';
+  om('itin-modal');
+}
+
+function saveItinerary(){
+  var eid=document.getElementById('itin-eid').value;
+  var cityId=document.getElementById('itin-city-id').value;
+  var row={user_id:currentUser.id,travel_id:currentTripId,city_id:parseInt(cityId),itinerary_date:document.getElementById('itin-date').value||null,title:document.getElementById('itin-title').value.trim(),content:document.getElementById('itin-content').value.trim()};
+  if(!row.title){alert('请填写行程标题');return;}
+  if(eid){
+    sb.from('travel_itinerary').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败');return;}
+      var idx2=tripItineraries.findIndex(function(i){return i.id===parseInt(eid);});
+      if(idx2>-1)tripItineraries[idx2]={...tripItineraries[idx2],...row};
+      renderCitiesList();cm('itin-modal');
+    });
+  }else{
+    sb.from('travel_itinerary').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      tripItineraries.push(r.data[0]);renderCitiesList();cm('itin-modal');
+    });
+  }
+}
+
+function deleteItinerary(id){
+  if(!confirm('确认删除？'))return;
+  sb.from('travel_itinerary').delete().eq('id',id).then(function(){
+    tripItineraries=tripItineraries.filter(function(i){return i.id!==id;});renderCitiesList();
+  });
+}
+
+async function uploadPhotos(input){
+  var files=Array.from(input.files);
+  if(!files.length)return;
+  var status=document.getElementById('photo-upload-status');
+  status.textContent='上传中 (0/'+files.length+')...';
+  var uploaded=0;
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    var path=currentUser.id+'/'+currentTripId+'/'+Date.now()+'-'+file.name;
+    var r=await sb.storage.from('travel-photos').upload(path,file);
+    if(!r.error){
+      var urlData=sb.storage.from('travel-photos').getPublicUrl(path);
+      var url=urlData.data.publicUrl;
+      var r2=await sb.from('travel_photos').insert({user_id:currentUser.id,travel_id:currentTripId,url:url}).select();
+      if(!r2.error)tripPhotos.push(r2.data[0]);
+      uploaded++;
+      status.textContent='上传中 ('+uploaded+'/'+files.length+')...';
+    }
+  }
+  status.textContent='上传完成 '+uploaded+' 张';
+  renderPhotosGrid();
+  input.value='';
+}
+
+function deletePhoto(id){
+  if(!confirm('确认删除此照片？'))return;
+  sb.from('travel_photos').delete().eq('id',id).then(function(){
+    tripPhotos=tripPhotos.filter(function(p){return p.id!==id;});renderPhotosGrid();
+  });
+}
+
+function editCurrentTrip(){
+  if(!currentTrip)return;
+  document.getElementById('vmt').textContent='编辑旅行';
+  document.getElementById('v-eid').value=currentTripId;
+  document.getElementById('v-dest').value=currentTrip.dest||'';
+  document.getElementById('v-em').value=currentTrip.emoji||'';
+  document.getElementById('v-s').value=currentTrip.start||'';
+  document.getElementById('v-e').value=currentTrip.end||'';
+  document.getElementById('v-co').value=currentTrip.companions||'';
+  document.getElementById('v-from').value=currentTrip.country||'';
+  document.getElementById('v-tg').value=currentTrip.tag||'';
+  document.getElementById('v-note').value='';
+  om('vm');
+}
+
+function deleteCurrentTrip(){
+  if(!confirm('确认删除此旅行及所有相关数据？'))return;
+  sb.from('travel').delete().eq('id',currentTripId).then(function(){
+    S.travel=S.travel.filter(function(t){return t.id!==currentTripId;});
+    currentTripId=null;currentTrip=null;
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('page-travel').classList.add('active');
+    renderTravel();
+  });
+}
+
+function editTravel(id){
+  var v=S.travel.find(function(t){return t.id===id;});if(!v)return;
+  document.getElementById('v-eid').value=id;document.getElementById('v-dest').value=v.dest;document.getElementById('v-country').value=v.country||'';document.getElementById('v-s').value=v.start||'';document.getElementById('v-e').value=v.end||'';document.getElementById('v-co').value=v.companions||'';document.getElementById('v-em').value=v.emoji||'';document.getElementById('v-tg').value=v.tag||'';document.getElementById('v-note').value=v.note||'';
+  om('vm');
+}
+
+function delTravel(id){if(!confirm('确认删除？'))return;sb.from('travel').delete().eq('id',id).then(function(){S.travel=S.travel.filter(function(t){return t.id!==id;});renderTravel();});}
+
+function renderTravel(){
+  document.getElementById('vsub').textContent=S.travel.length+' 次';
+  var g=document.getElementById('vgrid');
+  if(!S.travel.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">✈️</div><div class="et">记录你的旅行足迹</div></div>';return;}
+  g.innerHTML=S.travel.map(function(v){
+    var days=v.start&&v.end?Math.ceil((new Date(v.end)-new Date(v.start))/86400000):null;
+    return '<div class="vc" onclick="openTrip('+v.id+')" style="cursor:pointer">' +
+      '<div class="vc-cover">'+v.emoji+'</div>' +
+      '<div class="vc-body">' +
+        '<div class="vc-title">'+v.dest+(v.country?'，'+v.country:'')+'</div>' +
+        '<div class="vc-date">'+(v.start||'')+(v.end?' → '+v.end:'')+(days?' ('+days+'天)':'')+'</div>' +
+        (v.companions?'<div style="margin-bottom:6px"><span class="tag">'+v.companions+'</span>'+(v.tag?' <span class="tag to">'+v.tag+'</span>':'')+'</div>':'') +
+        '<div style="font-size:11px;color:var(--t3);font-family:DM Mono,monospace">点击查看详情 →</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+
+var bkE={'投资 / 金融':'💰','商业 / 管理':'💼','历史 / 传记':'📜','科学 / 技术':'🔬','文学 / 小说':'📖','哲学 / 思想':'🧠','其他':'📚'};
+var bkS={'想读':'','在读':'to','已读':'tg'};
+
+async function scanBookImage(input){
+  var file=input.files[0];
+  if(!file)return;
+  var preview=document.getElementById('scan-preview');
+  var img=document.getElementById('scan-img');
+  var status=document.getElementById('scan-status');
+  preview.style.display='flex';
+  preview.style.alignItems='center';
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    img.src=e.target.result;
+    status.textContent='⏳ AI 识别中...';
+    status.style.color='var(--a2)';
+    try{
+      var resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true',
+          'x-api-key':'sk-ant-api03-placeholder'
+        },
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:500,
+          messages:[{
+            role:'user',
+            content:[
+              {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:e.target.result.split(',')[1]}},
+              {type:'text',text:'请识别这本书的信息，只返回JSON，不要任何其他文字：{"title":"书名","author":"作者","publisher":"出版社","year":"出版年份(4位数字)","language":"中文或英文","category":"从以下选一个：投资 / 金融|商业 / 管理|历史 / 传记|科学 / 技术|文学 / 小说|哲学 / 思想|其他"}'}
+            ]
+          }]
+        })
+      });
+      var data=await resp.json();
+      if(data.error){throw new Error(data.error.message);}
+      var text=data.content&&data.content[0]?data.content[0].text:'';
+      var clean=text.replace(/```json|```/g,'').trim();
+      var info=JSON.parse(clean);
+      if(info.title)document.getElementById('b-title').value=info.title;
+      if(info.author)document.getElementById('b-auth').value=info.author;
+      if(info.publisher)document.getElementById('b-pub').value=info.publisher;
+      if(info.year)document.getElementById('b-year').value=info.year;
+      if(info.language){
+        var lg=document.getElementById('b-lang');
+        for(var i=0;i<lg.options.length;i++){if(lg.options[i].text===info.language){lg.selectedIndex=i;break;}}
+      }
+      if(info.category){
+        var ct=document.getElementById('b-cat');
+        for(var i=0;i<ct.options.length;i++){if(ct.options[i].value===info.category){ct.selectedIndex=i;break;}}
+      }
+      status.textContent='✅ 识别完成，请确认信息';
+      status.style.color='var(--grn)';
+    }catch(err){
+      status.textContent='❌ 识别失败：'+err.message;
+      status.style.color='var(--red)';
+      console.error(err);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function downloadBookTemplate(){
+  var nl=String.fromCharCode(10);
+  var q=String.fromCharCode(34);
+  var headers=['title','author','publisher','year','category','status','rating','language','note'];
+  var example=['The Complete Financial History of Berkshire Hathaway','Adam J. Mead','Harriman House','2022','投资 / 金融','想读','⭐⭐⭐⭐⭐','英文','巴菲特与芒格的伯克希尔哈撒韦完整财务历史'];
+  var hint=['# category: 投资/金融|商业/管理|历史/传记|科学/技术|文学/小说|哲学/思想|其他','status: 想读|在读|已读','rating: ⭐~⭐⭐⭐⭐⭐','language: 中文|英文','','','','',''];
+  var wrap=function(v){return q+String(v).replace(/"/g,'')+q;};
+  var csv=headers.join(',')+nl+example.map(wrap).join(',')+nl+hint.map(wrap).join(',')+nl;
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='books_template.csv';
+  a.click();
+}
+function importBookCSV(input){
+  var file = input.files[0];
+  if(!file)return;
+  var reader = new FileReader();
+  reader.onload = async function(e){
+    var text = e.target.result.replace(/^﻿/,'');
+    var nl = String.fromCharCode(10);
+    var lines = text.split(nl).map(function(l){return l.split(String.fromCharCode(13)).join('');}).filter(function(l){return l.trim() && !l.trim().startsWith('#');});
+    if(lines.length < 2){alert('文件格式有误或没有数据行');return;}
+    var headers = parseCSVLine(lines[0]);
+    var validCats = ['投资 / 金融','商业 / 管理','历史 / 传记','科学 / 技术','文学 / 小说','哲学 / 思想','其他'];
+    var validStats = ['想读','在读','已读'];
+    var rows = [];
+    for(var i=1;i<lines.length;i++){
+      var vals = parseCSVLine(lines[i]);
+      if(!vals[0] || vals[0].startsWith('#'))continue;
+      var obj = {};
+      headers.forEach(function(h,idx){obj[h.trim()]=vals[idx]?vals[idx].trim():'';});
+      if(!obj.title)continue;
+      // Map category - if not in valid list, use 其他
+      var cat = obj.category||'其他';
+      if(validCats.indexOf(cat) === -1) cat = '其他';
+      // Map status
+      var stat = obj.status||'想读';
+      if(validStats.indexOf(stat) === -1) stat = '想读';
+      rows.push({
+        user_id: currentUser.id,
+        title: obj.title,
+        author: obj.author||'',
+        publisher: obj.publisher||'',
+        year: obj.year||'',
+        category: cat,
+        status: stat,
+        rating: obj.rating||'',
+        language: obj.language||'中文',
+        note: obj.note||''
+      });
+    }
+    if(!rows.length){alert('没有找到有效数据行');return;}
+    // Insert in batches of 20
+    var total = 0;
+    for(var b=0;b<rows.length;b+=20){
+      var batch = rows.slice(b,b+20);
+      var r = await sb.from('books').insert(batch).select();
+      if(r.error){alert('部分导入失败：'+r.error.message);break;}
+      r.data.forEach(function(x){
+        S.books.unshift({
+          id:x.id,title:x.title,author:x.author||'',publisher:x.publisher||'',
+          year:x.year||'',category:x.category,status:x.status,rating:x.rating||'',
+          date:x.finish_date||'',lang:x.language||'中文',note:x.note||''
+        });
+        total++;
+      });
+    }
+    renderBooks();
+    alert('成功导入 '+total+' 本书！');
+    input.value='';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSVLine(line){
+  var result = [], current = '', inQuotes = false;
+  for(var i=0;i<line.length;i++){
+    var ch = line[i];
+    if(ch==='"'){
+      if(inQuotes && line[i+1]==='"'){current+='"';i++;}
+      else inQuotes=!inQuotes;
+    } else if(ch===',' && !inQuotes){
+      result.push(current);current='';
+    } else {
+      current+=ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function saveBook(){
+  var eid=document.getElementById('b-eid').value;
+  var b={id:eid?parseInt(eid):Date.now(),title:document.getElementById('b-title').value.trim(),author:document.getElementById('b-auth').value.trim(),category:document.getElementById('b-cat').value,status:document.getElementById('b-stat').value,rating:document.getElementById('b-rate').value,date:document.getElementById('b-date').value,lang:document.getElementById('b-lang').value,note:document.getElementById('b-note').value.trim()};
+  if(!b.title){alert('请填写书名');return;}
+  var row={user_id:currentUser.id,title:b.title,author:b.author,publisher:b.publisher,year:b.year,category:b.category,status:b.status,rating:b.rating,finish_date:b.date||null,language:b.lang,note:b.note};
+  if(eid){
+    sb.from('books').update(row).eq('id',parseInt(eid)).then(function(){
+      var idx=S.books.findIndex(function(x){return x.id===parseInt(eid);});if(idx>-1)S.books[idx]=b;renderBooks();cm('bm');
+    });
+  }else{
+    sb.from('books').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      b.id=r.data[0].id;S.books.unshift(b);renderBooks();cm('bm');
+    });
+  }
+}
+
+function editBook(id){
+  var b=S.books.find(function(x){return x.id===id;});if(!b)return;
+  document.getElementById('b-eid').value=id;document.getElementById('b-title').value=b.title;document.getElementById('b-auth').value=b.author||'';document.getElementById('b-cat').value=b.category;document.getElementById('b-stat').value=b.status;document.getElementById('b-rate').value=b.rating||'';document.getElementById('b-date').value=b.date||'';document.getElementById('b-lang').value=b.lang||'中文';document.getElementById('b-note').value=b.note||'';
+  om('bm');
+}
+
+function delBook(id){if(!confirm('确认删除？'))return;sb.from('books').delete().eq('id',id).then(function(){S.books=S.books.filter(function(b){return b.id!==id;});renderBooks();});}
+function fBook(f,btn){bF=f;document.querySelectorAll('#page-reading .fb').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderBooks();}
+
+function renderBooks(){
+  var fl=bF==='all'?S.books:S.books.filter(function(b){return b.status===bF;});
+  document.getElementById('bsub').textContent=S.books.length+' 本';
+  var l=document.getElementById('blist');
+  if(!fl.length){l.innerHTML='<div class="empty"><div class="ei">📚</div><div class="et">暂无书目</div></div>';return;}
+  l.innerHTML=fl.map(function(b){return '<div class="bk"><div class="bk-sp">'+(bkE[b.category]||'📚')+'</div><div class="bk-info"><div class="bk-title">'+b.title+'</div><div class="bk-auth">'+(b.author||'未知作者')+' · '+(b.lang||'中文')+'</div><div class="bk-meta"><span class="tag '+(bkS[b.status]||'')+'">'+b.status+'</span><span class="tag">'+b.category+'</span>'+(b.rating?'<span>'+b.rating+'</span>':'')+(b.date?'<span class="mono" style="font-size:10px;color:var(--t3)">'+b.date+'</span>':'')+'</div>'+(b.note?'<div class="bk-note">'+b.note+'</div>':'')+'</div><div class="bk-acts"><button class="btn bg bs" onclick="editBook('+b.id+')">编辑</button><button class="btn bd2 bs" onclick="delBook('+b.id+')">删</button></div></div>';}).join('');
+}
+
+function om(id){document.getElementById(id).classList.add('open');}
+function cm(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
+
+
+// ── GURUS ──
+function renderGurus(){
+  document.getElementById('guru-sub').textContent=S.gurus.length+' 位';
+  var g=document.getElementById('guru-grid');
+  if(!S.gurus.length){
+    g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">🏆</div><div class="et">还没有添加投资 Guru，点击右上角开始</div></div>';
+    return;
+  }
+  g.innerHTML=S.gurus.map(function(guru){
+    var tags=guru.tags?guru.tags.split(',').map(function(t){return '<span class="tag">'+t.trim()+'</span>';}).join(' '):'';
+    return '<div class="guru-card" onclick="openGuru('+guru.id+')">' +
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">' +
+        '<div style="font-size:36px">'+guru.emoji+'</div>' +
+        '<div>' +
+          '<div style="font-size:15px;font-weight:600">'+guru.name+'</div>' +
+          '<div style="font-size:11px;color:var(--t3);font-family:DM Mono,monospace;margin-top:2px">'+guru.title+'</div>' +
+        '</div>' +
+      '</div>' +
+      (guru.style?'<div style="margin-bottom:8px"><span class="tag to">'+guru.style+'</span></div>':'') +
+      (tags?'<div style="margin-bottom:10px;display:flex;gap:4px;flex-wrap:wrap">'+tags+'</div>':'') +
+      '<div style="font-size:12px;color:var(--t2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+guru.bio+'</div>' +
+      '<div style="font-size:10px;color:var(--t3);font-family:DM Mono,monospace;margin-top:10px">点击查看笔记与资料 →</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openGuruModal(){
+  document.getElementById('guru-modal-title').textContent='新增投资 Guru';
+  document.getElementById('g-eid').value='';
+  ['g-name','g-emoji','g-title','g-style','g-tags','g-bio'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('g-emoji').value='👤';
+  om('guru-modal');
+}
+
+function editCurrentGuru(){
+  if(!currentGuru)return;
+  document.getElementById('guru-modal-title').textContent='编辑 Guru';
+  document.getElementById('g-eid').value=currentGuruId;
+  document.getElementById('g-name').value=currentGuru.name;
+  document.getElementById('g-emoji').value=currentGuru.emoji||'👤';
+  document.getElementById('g-title').value=currentGuru.title||'';
+  document.getElementById('g-style').value=currentGuru.style||'';
+  document.getElementById('g-tags').value=currentGuru.tags||'';
+  document.getElementById('g-bio').value=currentGuru.bio||'';
+  om('guru-modal');
+}
+
+function saveGuru(){
+  var eid=document.getElementById('g-eid').value;
+  var name=document.getElementById('g-name').value.trim();
+  if(!name){alert('请填写姓名');return;}
+  var guru={
+    id:eid?parseInt(eid):null,
+    name:name,
+    emoji:document.getElementById('g-emoji').value.trim()||'👤',
+    title:document.getElementById('g-title').value.trim(),
+    style:document.getElementById('g-style').value.trim(),
+    tags:document.getElementById('g-tags').value.trim(),
+    bio:document.getElementById('g-bio').value.trim()
+  };
+  var row={user_id:currentUser.id,name:guru.name,avatar_emoji:guru.emoji,title:guru.title,style:guru.style,tags:guru.tags,bio:guru.bio};
+  if(eid){
+    sb.from('gurus').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      var idx=S.gurus.findIndex(function(x){return x.id===parseInt(eid);});
+      guru.id=parseInt(eid);
+      if(idx>-1)S.gurus[idx]=guru;
+      currentGuru=guru;
+      renderGurus();renderGuruDetail();cm('guru-modal');
+    });
+  }else{
+    sb.from('gurus').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败：'+r.error.message);return;}
+      guru.id=r.data[0].id;
+      S.gurus.push(guru);
+      renderGurus();cm('guru-modal');
+    });
+  }
+}
+
+function deleteCurrentGuru(){
+  if(!confirm('确认删除此 Guru 及所有笔记和文件？'))return;
+  sb.from('gurus').delete().eq('id',currentGuruId).then(function(){
+    S.gurus=S.gurus.filter(function(g){return g.id!==currentGuruId;});
+    currentGuruId=null;currentGuru=null;
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('page-gurus').classList.add('active');
+    renderGurus();
+  });
+}
+
+async function openGuru(id){
+  currentGuruId=id;
+  currentGuru=S.gurus.find(function(g){return g.id===id;});
+  if(!currentGuru)return;
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-guru-detail').classList.add('active');
+  // Load notes and docs
+  var r1=await sb.from('guru_notes').select('*').eq('guru_id',id).order('created_at',{ascending:false});
+  S.guruNotes=r1.data||[];
+  var r2=await sb.from('guru_docs').select('*').eq('guru_id',id).order('created_at',{ascending:false});
+  S.guruDocs=r2.data||[];
+  var r3=await sb.from('guru_links').select('*').eq('guru_id',id).order('created_at',{ascending:false});
+  S.guruLinks=r3.data||[];
+  renderGuruDetail();
+}
+
+function renderGuruDetail(){
+  if(!currentGuru)return;
+  document.getElementById('gd-name').textContent=currentGuru.name;
+  document.getElementById('gd-emoji').textContent=currentGuru.emoji||'👤';
+  var titleLine=[];
+  if(currentGuru.title)titleLine.push(currentGuru.title);
+  if(currentGuru.style)titleLine.push(currentGuru.style);
+  document.getElementById('gd-title-line').textContent=titleLine.join(' · ');
+  var tagsEl=document.getElementById('gd-tags');
+  tagsEl.innerHTML='';
+  if(currentGuru.tags){
+    currentGuru.tags.split(',').forEach(function(t){
+      var span=document.createElement('span');span.className='tag';span.textContent=t.trim();tagsEl.appendChild(span);
+    });
+  }
+  document.getElementById('gd-bio').textContent=currentGuru.bio||'';
+  renderGuruNotes();
+  renderGuruDocs();
+  renderGuruLinks();
+}
+
+function guruTab(tab,btn){
+  document.querySelectorAll('#page-guru-detail .tabs .tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('gt-notes').style.display=tab==='notes'?'block':'none';
+  document.getElementById('gt-docs').style.display=tab==='docs'?'block':'none';
+}
+
+// ── NOTES ──
+function openNoteModal(id){
+  document.getElementById('note-modal-title').textContent=id?'编辑笔记':'新增笔记';
+  document.getElementById('n-eid').value=id||'';
+  if(id){
+    var note=S.guruNotes.find(function(n){return n.id===id;});
+    if(note){document.getElementById('n-source').value=note.source||'';document.getElementById('n-content').value=note.content||'';}
+  }else{
+    document.getElementById('n-source').value='';document.getElementById('n-content').value='';
+  }
+  om('note-modal');
+}
+
+function saveNote(){
+  var eid=document.getElementById('n-eid').value;
+  var content=document.getElementById('n-content').value.trim();
+  if(!content){alert('请填写笔记内容');return;}
+  var row={user_id:currentUser.id,guru_id:currentGuruId,content:content,source:document.getElementById('n-source').value.trim()};
+  if(eid){
+    sb.from('guru_notes').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败');return;}
+      var idx=S.guruNotes.findIndex(function(n){return n.id===parseInt(eid);});
+      if(idx>-1)S.guruNotes[idx]={...S.guruNotes[idx],...row};
+      renderGuruNotes();cm('note-modal');
+    });
+  }else{
+    sb.from('guru_notes').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      S.guruNotes.unshift(r.data[0]);
+      renderGuruNotes();cm('note-modal');
+    });
+  }
+}
+
+function deleteNote(id){
+  if(!confirm('确认删除此笔记？'))return;
+  sb.from('guru_notes').delete().eq('id',id).then(function(){
+    S.guruNotes=S.guruNotes.filter(function(n){return n.id!==id;});renderGuruNotes();
+  });
+}
+
+function renderGuruNotes(){
+  var el=document.getElementById('guru-notes-list');
+  if(!S.guruNotes.length){
+    el.innerHTML='<div class="empty"><div class="ei">📝</div><div class="et">还没有笔记，点击「新增笔记」开始记录</div></div>';
+    return;
+  }
+  el.innerHTML=S.guruNotes.map(function(n){
+    var dt=n.created_at?n.created_at.substr(0,16).replace('T',' '):'';
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:20px;margin-bottom:12px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">' +
+        '<div>' +
+          (n.source?'<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--a2);margin-bottom:4px">📌 '+n.source+'</div>':'') +
+          '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--t3)">'+dt+'</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn bg bs" onclick="openNoteModal('+n.id+')">编辑</button>' +
+          '<button class="btn bd2 bs" onclick="deleteNote('+n.id+')">删</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--tx);line-height:1.8;white-space:pre-wrap">'+n.content+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── DOCS ──
+async function uploadGuruDocs(input){
+  var files=Array.from(input.files);
+  if(!files.length)return;
+  var status=document.getElementById('guru-doc-status');
+  status.textContent='上传中...';
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    var path=currentUser.id+'/'+currentGuruId+'/'+Date.now()+'-'+file.name;
+    var r=await sb.storage.from('guru-docs').upload(path,file);
+    if(!r.error){
+      var urlData=sb.storage.from('guru-docs').getPublicUrl(path);
+      var r2=await sb.from('guru_docs').insert({
+        user_id:currentUser.id,guru_id:currentGuruId,
+        name:file.name,url:urlData.data.publicUrl,
+        size_kb:Math.round(file.size/1024)
+      }).select();
+      if(!r2.error)S.guruDocs.unshift(r2.data[0]);
+    }
+  }
+  status.textContent='上传完成';
+  renderGuruDocs();
+  input.value='';
+}
+
+function deleteDoc(id){
+  if(!confirm('确认删除此文件？'))return;
+  sb.from('guru_docs').delete().eq('id',id).then(function(){
+    S.guruDocs=S.guruDocs.filter(function(d){return d.id!==id;});renderGuruDocs();
+  });
+}
+
+function renderGuruDocs(){
+  var el=document.getElementById('guru-docs-list');
+  if(!S.guruDocs.length){
+    el.innerHTML='<div class="empty"><div class="ei">📁</div><div class="et">还没有文件，点击上方按钮上传</div></div>';
+    return;
+  }
+  el.innerHTML=S.guruDocs.map(function(d){
+    var dt=d.created_at?d.created_at.substr(0,10):'';
+    var icon=d.name.endsWith('.pdf')?'📄':d.name.endsWith('.epub')?'📚':'📎';
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px">' +
+      '<div style="font-size:28px">'+icon+'</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:600">'+d.name+'</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--t3);margin-top:2px">'+(d.size_kb?d.size_kb+'KB · ':'')+dt+'</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px">' +
+        '<a href="'+d.url+'" target="_blank" class="btn bg bs">打开</a>' +
+        '<button class="btn bd2 bs" onclick="deleteDoc('+d.id+')">删</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+
+// ── IMPORT HOLDINGS ──
+function downloadHoldingsTemplate(){
+  var nl=String.fromCharCode(10);
+  var q=String.fromCharCode(34);
+  var w=function(v){return q+String(v).replace(/"/g,'')+q;};
+  var headers=['code','name','market','qty','avg_cost','currency','industry','date','portfolio','note'];
+  var examples=[
+    ['AAPL','Apple Inc','美股','100','180.50','USD','科技','2024-01-15','核心持仓','长期持有'],
+    ['HKG:0700','腾讯控股','港股','500','320.00','HKD','科技','2024-03-01','港股组合',''],
+    ['SPY','SPDR S&P 500 ETF','ETF','50','450.00','USD','ETF/指数','2024-06-01','','指数基金'],
+    ['BRKB','Berkshire Hathaway B','美股','20','360.00','USD','金融','2023-12-01','核心持仓',''],
+  ];
+  var hints=[
+    '# ====== 字段说明 ======',
+    '# code: 股票代码（美股:AAPL 港股:HKG:0700 A股:SHA:600519）',
+    '# name: 公司/基金名称',
+    '# market: 美股 / 港股 / ETF',
+    '# qty: 持仓数量（股数）',
+    '# avg_cost: 均摊成本（单股价格）',
+    '# currency: USD / HKD / CNY',
+    '# industry: 科技/金融/消费/医疗/能源/工业/ETF指数/其他',
+    '# date: 建仓日期 YYYY-MM-DD',
+    '# portfolio: 归属组合名称（可留空）',
+    '# note: 备注（可留空）',
+    '# 说明行（#开头）导入时自动跳过',
+  ];
+  var csv=headers.map(w).join(',')+nl;
+  examples.forEach(function(r){csv+=r.map(w).join(',')+nl;});
+  csv+=nl;
+  hints.forEach(function(h){csv+=h+nl;});
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='holdings_template.csv';
+  a.click();
+}
+
+function om_import(){
+  // Populate portfolio select
+  var sel=document.getElementById('import-pid');
+  sel.innerHTML='<option value="">— 未分配 —</option>';
+  S.portfolios.forEach(function(p){sel.innerHTML+='<option value="'+p.id+'">'+p.name+'</option>';});
+  if(activePortfolioId)sel.value=activePortfolioId;
+  document.getElementById('import-text').value='';
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('import-csv-file').value='';
+  document.getElementById('import-modal').classList.add('open');
+}
+
+function parseHoldingsText(text){
+  var nl=String.fromCharCode(10);
+  var tab=String.fromCharCode(9);
+  var rawLines=text.split(nl).map(function(l){return l.split(String.fromCharCode(13)).join('').trim();}).filter(function(l){return l && !l.startsWith('#');});
+  if(!rawLines.length)return[];
+  var today=td();
+
+  // Detect separator: tab or comma
+  var isTsv=rawLines[0].indexOf(tab)!==-1;
+
+  // Detect header
+  var firstLower=rawLines[0].toLowerCase();
+  var hasHeader=firstLower.indexOf('code')!==-1||firstLower.indexOf('name')!==-1||firstLower.indexOf('代码')!==-1||firstLower.indexOf('名称')!==-1;
+  var dataLines=hasHeader?rawLines.slice(1):rawLines;
+
+  // Market mapping
+  var mktMap={'香港etf':'港股','香港ETF':'港股','美国ETF':'ETF','美国etf':'ETF','港股':'港股','美股':'美股','etf':'ETF','ETF':'ETF'};
+
+  // Industry mapping - map non-standard to closest
+  var indValid=['科技','金融','消费','医疗','能源','工业','ETF/指数','其他'];
+  var indMap={'地产':'其他','房地产':'其他','烟草':'消费','零售':'消费','银行':'金融','保险':'金融','医药':'医疗','生物科技':'医疗','互联网':'科技','电信':'科技'};
+
+  // Clean number: remove commas, handle dash
+  var cleanNum=function(s){
+    if(!s)return 0;
+    s=s.trim();
+    if(s==='-'||s==='- '||s.replace(/[\s\-]/g,'')==='')return 0;
+    return parseFloat(s.replace(/,/g,''))||0;
+  };
+
+  // Clean date: 2026/5/6 -> 2026-05-06
+  var cleanDate=function(s){
+    if(!s||!s.trim())return today;
+    s=s.trim();
+    // Already YYYY-MM-DD
+    if(s.match(/^\d{4}-\d{2}-\d{2}$/))return s;
+    // YYYY/M/D or YYYY/MM/DD
+    var m=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+    return today;
+  };
+
+  var rows=[];
+  dataLines.forEach(function(line){
+    var parts;
+    if(isTsv){
+      parts=line.split(tab).map(function(p){return p.trim();});
+    }else{
+      parts=parseCSVLine(line);
+    }
+    if(parts.length<3)return;
+    var p=function(i){return(parts[i]||'').trim();};
+    var code=p(0),name=p(1);
+    if(!code||!name)return;
+
+    var qty=cleanNum(p(3));
+    var price=cleanNum(p(4));
+    if(qty<=0||price<=0)return; // skip if no qty or price
+
+    var mktRaw=p(2);
+    var mkt=mktMap[mktRaw]||mktRaw||'美股';
+    // Detect ETF from market name
+    if(mktRaw.toLowerCase().indexOf('etf')!==-1&&mkt!=='ETF')mkt='ETF';
+
+    var indRaw=p(6)||'其他';
+    var ind=indMap[indRaw]||(indValid.indexOf(indRaw)!==-1?indRaw:'其他');
+
+    rows.push({
+      code:code,name:name,market:mkt,
+      qty:qty,price:price,
+      currency:p(5)||'USD',
+      industry:ind,
+      date:cleanDate(p(7)),
+      portfolioName:p(8)||'',
+      note:p(9)||'初始持仓导入'
+    });
+  });
+  return rows;
+}
+
+async function importHoldings(){
+  var text=document.getElementById('import-text').value.trim();
+  var fileInput=document.getElementById('import-csv-file');
+  var pid=document.getElementById('import-pid').value||null;
+
+  var processRows=async function(rawText){
+    var rows=parseHoldingsText(rawText);
+    if(!rows.length){alert('没有找到有效数据，请检查格式');return;}
+    var trades=rows.map(function(r){
+      // Resolve portfolio: use modal selection, or match by name from CSV
+      var resolvedPid=pid||null;
+      if(!resolvedPid && r.portfolioName){
+        var matched=S.portfolios.find(function(p){return p.name===r.portfolioName;});
+        if(matched)resolvedPid=matched.id;
+      }
+      return{user_id:currentUser.id,portfolio_id:resolvedPid,direction:'buy',
+        code:r.code,name:r.name,market:r.market,qty:r.qty,price:r.price,
+        currency:r.currency,trade_date:r.date,industry:r.industry,note:r.note||'初始持仓导入'};
+    });
+    var r=await sb.from('trades').insert(trades).select();
+    if(r.error){alert('导入失败：'+r.error.message);return;}
+    r.data.forEach(function(x){
+      S.trades.unshift({id:x.id,portfolioId:x.portfolio_id,direction:'buy',
+        code:x.code,name:x.name,market:x.market,qty:Number(x.qty),price:Number(x.price),
+        currency:x.currency,date:x.trade_date,industry:x.industry,note:x.note||''});
+    });
+    renderPortfolio();cm('import-modal');
+    alert('成功导入 '+r.data.length+' 笔持仓记录！');
+  };
+
+  if(fileInput.files[0]){
+    var reader=new FileReader();
+    reader.onload=function(e){processRows(e.target.result.replace(/^﻿/,''));};
+    reader.readAsText(fileInput.files[0],'UTF-8');
+  }else if(text){
+    processRows(text);
+  }else{
+    alert('请粘贴持仓数据或上传 CSV 文件');
+  }
+}
+
+// ── GURU LINKS ──
+function openLinkModal(id){
+  document.getElementById('link-modal-title').textContent=id?'编辑链接':'添加链接';
+  document.getElementById('l-eid').value=id||'';
+  if(id){
+    var lnk=S.guruLinks.find(function(x){return x.id===id;});
+    if(lnk){
+      document.getElementById('l-name').value=lnk.name||'';
+      document.getElementById('l-url').value=lnk.url||'';
+      document.getElementById('l-note').value=lnk.note||'';
+      document.getElementById('l-type').value=lnk.link_type||'其他';
+    }
+  }else{
+    ['l-name','l-url','l-note'].forEach(function(x){document.getElementById(x).value='';});
+  }
+  om('link-modal');
+}
+
+function saveLink(){
+  var eid=document.getElementById('l-eid').value;
+  var name=document.getElementById('l-name').value.trim();
+  var url=document.getElementById('l-url').value.trim();
+  if(!name||!url){alert('请填写链接名称和 URL');return;}
+  var row={user_id:currentUser.id,guru_id:currentGuruId,name:name,url:url,
+    link_type:document.getElementById('l-type').value,
+    note:document.getElementById('l-note').value.trim()};
+  if(eid){
+    sb.from('guru_links').update(row).eq('id',parseInt(eid)).then(function(r){
+      if(r.error){alert('保存失败');return;}
+      var idx=S.guruLinks.findIndex(function(x){return x.id===parseInt(eid);});
+      if(idx>-1)S.guruLinks[idx]={...S.guruLinks[idx],...row,id:parseInt(eid)};
+      renderGuruLinks();cm('link-modal');
+    });
+  }else{
+    sb.from('guru_links').insert(row).select().then(function(r){
+      if(r.error){alert('保存失败');return;}
+      S.guruLinks.unshift(r.data[0]);renderGuruLinks();cm('link-modal');
+    });
+  }
+}
+
+function deleteLink(id){
+  if(!confirm('确认删除？'))return;
+  sb.from('guru_links').delete().eq('id',id).then(function(){
+    S.guruLinks=S.guruLinks.filter(function(x){return x.id!==id;});renderGuruLinks();
+  });
+}
+
+function renderGuruLinks(){
+  var el=document.getElementById('guru-links-list');
+  if(!S.guruLinks.length){
+    el.innerHTML='<div class="empty"><div class="ei">🔗</div><div class="et">还没有链接，点击「添加链接」</div></div>';
+    return;
+  }
+  var typeIcon={'官方网站':'🌐','年报 / 信函':'📑','访谈 / 演讲':'🎤','文章 / 研报':'📰','视频':'🎬','其他':'🔗'};
+  el.innerHTML=S.guruLinks.map(function(lnk){
+    var icon=typeIcon[lnk.link_type]||'🔗';
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px">' +
+      '<div style="font-size:24px">'+icon+'</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:600">'+lnk.name+'</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--a3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px">'+lnk.url+'</div>' +
+        (lnk.note?'<div style="font-size:11px;color:var(--t3);margin-top:2px">'+lnk.note+'</div>':'') +
+      '</div>' +
+      '<span class="tag tb">'+lnk.link_type+'</span>' +
+      '<div style="display:flex;gap:6px">' +
+        '<a href="'+lnk.url+'" target="_blank" class="btn bg bs">打开</a>' +
+        '<button class="btn bg bs" onclick="openLinkModal('+lnk.id+')">编辑</button>' +
+        '<button class="btn bd2 bs" onclick="deleteLink('+lnk.id+')">删</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// Update guruTab to handle links
+var _origGuruTab=guruTab;
+guruTab=function(tab,btn){
+  _origGuruTab(tab,btn);
+  var linksEl=document.getElementById('gt-links');
+  if(linksEl)linksEl.style.display=tab==='links'?'block':'none';
+};
+
+
+function deleteHolding(code){
+  if(!confirm('确认删除「'+code+'」的所有交易记录？此操作不可恢复。'))return;
+  var ids=getFilteredTrades().filter(function(t){return t.code===code;}).map(function(t){return t.id;});
+  if(!ids.length)return;
+  Promise.all(ids.map(function(id){return sb.from('trades').delete().eq('id',id);})).then(function(){
+    S.trades=S.trades.filter(function(t){return t.code!==code;});
+    renderPortfolio();
+  });
+}
+
+function deletePortfolio(id){
+  var p=S.portfolios.find(function(x){return x.id===id;});
+  if(!p)return;
+  if(!confirm('确认删除组合「'+p.name+'」？组合内的交易记录不会删除，但归属关系会清除。'))return;
+  sb.from('portfolios').delete().eq('id',id).then(function(){
+    S.portfolios=S.portfolios.filter(function(x){return x.id!==id;});
+    if(activePortfolioId===id)activePortfolioId=null;
+    renderPortfolioBar();renderPortfolio();
+  });
+}
+
+function renderAll(){renderPortfolioBar();renderPortfolio();renderIdeas();renderGurus();renderTravel();renderBooks();}
+
+(function(){var n=new Date(),days=['日','一','二','三','四','五','六'];document.getElementById('sd').innerHTML=n.getFullYear()+'.'+String(n.getMonth()+1).padStart(2,'0')+'.'+String(n.getDate()).padStart(2,'0')+'<br>周'+days[n.getDay()];})();
+
+load();initAuth();
+</script>
+</div></div>
+</body>
+</html>
