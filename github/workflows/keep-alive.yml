@@ -1,0 +1,16 @@
+name: Keep Supabase Alive
+on:
+  schedule:
+    - cron: '0 8 */4 * *'   # 每 4 天的 UTC 08:00 跑一次
+  workflow_dispatch:          # 也可在 Actions 页手动点运行
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        run: |
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
+            "https://qcuwyzkdjyqghwdhplvz.supabase.co/rest/v1/portfolios?select=id&limit=1" \
+            -H "apikey: sb_publishable_4Mhnq7iaWoIaZMt-tkZbuw_DWbq-PX6" \
+            -H "Authorization: Bearer sb_publishable_4Mhnq7iaWoIaZMt-tkZbuw_DWbq-PX6"
